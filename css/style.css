@@ -1,25 +1,7 @@
 .button {
-	display: inline-block;
-	width: 200px;
-	height: 54px;
-	text-align: center;
-	text-decoration: none;
-	line-height: 54px;
-	outline: none;
+	background-color: #333;
+	color: #fff;
 }
-.button::before,
-.button::after {
-	position: absolute;
-	z-index: -1;
-	display: block;
-	content: '';
-}
-.button,
-.button::before,
-.button::after {
-	-webkit-box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	box-sizing: border-box;
-	-webkit-transition: all .3s;
-	transition: all .3s;
+.button:hover {
+	background-color: #59b1eb;
 }
