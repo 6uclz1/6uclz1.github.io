@@ -1,0 +1,136 @@
+body.dark-mode {
+    background-color: #282828;
+    color: #eee;
+    transition-duration: 0.4s;
+}
+
+body.light-mode {
+    background-color: #fbf1c7;
+    transition-duration: 0.4s;
+    color: #282828;
+}
+
+body.dark-mode a {
+    color: #98971a;
+}
+
+body.light-mode a {
+    color: #98971a;
+}
+
+body.dark-mode button {
+    background-color: #282828;
+    color: #928374;
+}
+
+body.light-mode button {
+    background-color: #fbf1c7;
+    color: #928374;
+}
+
+body.light-mode p {
+    color: #282828
+}
+
+body.dark-mode a:hover {
+    color: #665c54;
+    padding: 0.25em;
+    border-radius: 0.25em;
+    transition-duration: 0.4s;
+    background-color: #fbf1c7;
+    text-decoration: none;
+}
+
+body.light-mode a:hover {
+    color: #665c54;
+    padding: 0.25em;
+    border-radius: 0.25em;
+    transition-duration: 0.4s;
+    background-color: #282828;
+    text-decoration: none;
+}
+
+body.dark-mode button:hover {
+    color: #665c54;
+    background-color: #fbf1c7;
+    transition-duration: 0.4s;
+}
+
+body.light-mode button:hover {
+    color: #928374;
+    background-color: #282828;
+    transition-duration: 0.4s;
+}
+
+.button {
+    background-color: #98971a;
+    padding: 0.5em;
+    transition-duration: 0.4s;
+    border: 2px solid #928374;
+    text-align: center;
+    display: inline-block;
+    font-size: 1.5em;
+    font-family: monospace;
+}
+
+html,
+body {
+    padding: 10px;
+    width: auto;
+    font-family: monospace;
+}
+
+p {
+    position: relative;
+    text-align: left;
+    font-size: 1.5em;
+    color: #ebdbb2;
+    font-family: monospace;
+}
+
+a {
+    color: #98971a;
+    background-color: transparent;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #665c54;
+    background-color: #fbf1c7;
+    text-decoration: none;
+}
+
+div {
+    margin: auto;
+    width: 75%;
+    border: 1.25em;
+    padding: 1.25em;
+}
+
+.red {
+    color: #cc241d;
+}
+
+.green {
+    color: #98971a;
+}
+
+.yellow {
+    color: #d79921;
+}
+
+.blue {
+    color: #458588;
+}
+
+.orange {
+    color: #d65d0e;
+}
+
+.purple {
+    color: #b16286;
+}
+
+.gray {
+    color: #928374;
+}

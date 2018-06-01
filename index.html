@@ -6,70 +6,12 @@
 </head>
 
 <style>
-    html,
-    body {
-        background-color: #282828;
-        padding: 10px;
-        width: auto;
-    }
-    
-    p {
-        position: relative;
-        text-align: left;
-        font-size: 1.5em;
-        color: #ebdbb2;
-        font-family: monospace;
-    }
-    
-    a {
-        color: #98971a;
-        background-color: transparent;
-        text-decoration: none;
-    }
-    
-    a:hover {
-        color: #665c54;
-        background-color: #fbf1c7;
-        text-decoration: none;
-    }
-    
-    div {
-        margin: auto;
-        width: 75%;
-        border: 1.25em;
-        padding: 1.25em;
-    }
-    
-    .red {
-        color: #cc241d;
-    }
-    
-    .green {
-        color: #98971a;
-    }
-    
-    .yellow {
-        color: #d79921;
-    }
-    
-    .blue {
-        color: #458588;
-    }
-    
-    .orange {
-        color: #d65d0e;
-    }
-    
-    .purple {
-        color: #b16286;
-    }
-    
-    .gray {
-        color: #928374;
-    }
+
 </style>
 
-<body>
+<link rel="stylesheet" type="text/css" href="style.css">
+
+<body id="body" class="dark-mode">
     <div id="box">
         <p><span class="gray"># 6uclz1's profile page</span></p>
     </div>
@@ -97,9 +39,19 @@
 
     </div>
 
+    <div>
+        <button type="button" class="button" name="dark_light" onclick="toggleDarkLight()" title="Toggle dark/light mode">Switch</button>
+    </div>
+
     <div id="box">
         <p><span class="gray"># create by 6uclz1.</span></p>
+        <p><span class="gray"># themed by </span>
+            <a href="https://github.com/morhetz/gruvbox">gruvbox</a>
+        </p>
     </div>
+
+    <script src="main.js"></script>
+
 </body>
 
 </html>
