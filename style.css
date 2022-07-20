@@ -1,3 +1,11 @@
+html,
+body {
+    padding: 10px;
+    width: auto;
+    font-size: 12px;
+    font-family: "Lucida Console", "Courier New", monospace;
+}
+
 body.dark-mode {
     background-color: #282828;
     color: #eee;
@@ -10,74 +18,35 @@ body.light-mode {
     color: #282828;
 }
 
-body.dark-mode a {
-    color: #98971a;
-}
-
-body.light-mode a {
-    color: #98971a;
+.button {
+    background-color: #98971a;
+    padding: 0.5em;
+    transition-duration: 0.4s;
+    border: 1px solid #928374;
+    text-align: center;
+    display: inline-block;
+    font-size: 1.5em;
+    font-family: "Lucida Console", "Courier New", monospace;
 }
 
 body.dark-mode button {
     background-color: #282828;
     color: #928374;
 }
-
-body.light-mode button {
-    background-color: #fbf1c7;
-    color: #928374;
-}
-
-body.light-mode p {
-    color: #282828
-}
-
-body.dark-mode a:hover {
-    color: #665c54;
-    padding: 0.25em;
-    border-radius: 0.25em;
-    transition-duration: 0.4s;
-    background-color: #fbf1c7;
-    text-decoration: none;
-}
-
-body.light-mode a:hover {
-    color: #665c54;
-    padding: 0.25em;
-    border-radius: 0.25em;
-    transition-duration: 0.4s;
-    background-color: #282828;
-    text-decoration: none;
-}
-
 body.dark-mode button:hover {
     color: #665c54;
     background-color: #fbf1c7;
     transition-duration: 0.4s;
 }
 
+body.light-mode button {
+    background-color: #fbf1c7;
+    color: #928374;
+}
 body.light-mode button:hover {
     color: #928374;
     background-color: #282828;
     transition-duration: 0.4s;
-}
-
-.button {
-    background-color: #98971a;
-    padding: 0.5em;
-    transition-duration: 0.4s;
-    border: 2px solid #928374;
-    text-align: center;
-    display: inline-block;
-    font-size: 1.5em;
-    font-family: monospace;
-}
-
-html,
-body {
-    padding: 10px;
-    width: auto;
-    font-family: monospace;
 }
 
 p {
@@ -85,22 +54,51 @@ p {
     text-align: left;
     font-size: 1.5em;
     color: #ebdbb2;
-    font-family: monospace;
+}
+body.light-mode p {
+    color: #282828
 }
 
 a {
-    color: #98971a;
-    background-color: transparent;
+    padding: 0.2em 0.3em;
     text-decoration: none;
 }
-
 a:hover {
-    color: #665c54;
-    background-color: #fbf1c7;
     text-decoration: none;
 }
 
-div {
+body.dark-mode a {
+    color: #98971a;
+    background-image: linear-gradient(90deg, #98971a, #98971a);
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    background-size: 0 1px;
+    transition: background-size 0.6s;
+}
+body.dark-mode a:hover {
+    background-size: 100% 1px;
+}
+
+body.light-mode a {
+    color: #98971a;
+    background-image: linear-gradient(90deg, #98971a, #98971a);
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    background-size: 0 1px;
+    transition: background-size 0.4s;
+}
+body.light-mode a:hover {
+    background-size: 100% 1px;
+}
+
+#box {
+    margin: auto;
+    width: 75%;
+    border: 1.25em;
+    padding: 1.25em;
+}
+
+#toggleDarkLightBox {
     margin: auto;
     width: 75%;
     border: 1.25em;
