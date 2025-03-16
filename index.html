@@ -1,13 +1,170 @@
 <!DOCTYPE html>
-<html lang="en">
 
 <head>
-    <meta name=”viewport” content=”width=device-width,initial-scale=1″>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>6uclz1's profile page</title>
+    <style>
+        /* General styles */
+        html, body {
+            padding: 0.625em; /* 10px to em */
+            width: auto;
+            font-size: 1em; /* 16px to em */
+            font-family: "Lucida Console", "Courier New", monospace;
+        }
 
-    <link rel="stylesheet" type="text/css" href="style.css">
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #282828;
+            color: #eee;
+            transition-duration: 0.4s;
 
-<body id="body" class="dark-mode">
+            button {
+                background-color: #282828;
+                color: #d79921;
+                background-image: linear-gradient(90deg, #2483c2, #2483c2);
+                background-repeat: no-repeat;
+                background-position: left bottom;
+                background-size: 0 0.0625em; /* 1px to em */
+                transition-duration: 0.0s;
+
+                &:hover {
+                    color: #2483c2;
+                    background-size: 100% 0.0625em; /* 1px to em */
+                }
+            }
+
+            p {
+                color: #ebdbb2;
+            }
+
+            a {
+                color: #98971a;
+                background-image: linear-gradient(90deg, #98971a, #98971a);
+                background-repeat: no-repeat;
+                background-position: left bottom;
+                background-size: 0 0.0625em; /* 1px to em */
+                transition: background-size 0.6s;
+
+                &:hover {
+                    background-size: 100% 0.0625em; /* 1px to em */
+                }
+            }
+        }
+
+        /* Light mode styles */
+        body.light-mode {
+            background-color: #fbf1c7;
+            transition-duration: 0.4s;
+            color: #282828;
+
+            button {
+                color: #928374;
+                background-image: linear-gradient(90deg, #2483c2, #2483c2);
+                background-repeat: no-repeat;
+                background-position: left bottom;
+                background-size: 0 0.0625em; /* 1px to em */
+                transition-duration: 0.0s;
+
+                &:hover {
+                    color: #2483c2;
+                    background-size: 100% 0.0625em; /* 1px to em */
+                }
+            }
+
+            p {
+                color: #282828;
+            }
+
+            a {
+                color: #98971a;
+                background-image: linear-gradient(90deg, #98971a, #98971a);
+                background-repeat: no-repeat;
+                background-position: left bottom;
+                background-size: 0 0.0625em; /* 1px to em */
+                transition: background-size 0.4s;
+
+                &:hover {
+                    background-size: 100% 0.0625em; /* 1px to em */
+                }
+            }
+        }
+
+        /* Button styles */
+        .button {
+            transition-duration: 0.4s;
+            padding: 0;
+            border: none;
+            background: none;
+            text-align: center;
+            display: inline-block;
+            font-size: 1.5em;
+            font-family: "Lucida Console", "Courier New", monospace;
+        }
+
+        /* Paragraph styles */
+        p {
+            position: relative;
+            text-align: left;
+            font-size: 1.5em;
+            color: #ebdbb2;
+        }
+
+        /* Link styles */
+        a {
+            padding: 0.2em 0.3em;
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: none;
+            }
+        }
+
+        /* Box styles */
+        #box, #toggleDarkLightBox {
+            margin: auto;
+            width: 75%;
+            border: 1.25em;
+            padding: 1.25em;
+        }
+
+        /* Color classes */
+        .red { color: #cc241d; }
+        .green { color: #98971a; }
+        .yellow { color: #d79921; }
+        .blue { color: #458588; }
+        .orange { color: #d65d0e; }
+        .purple { color: #b16286; }
+        .gray { color: #928374; }
+
+        /* Responsive styles for mobile */
+        @media (max-width: 37.5em) { /* 600px to em */
+            html, body {
+                padding: 0.3125em; /* 5px to em */
+                font-size: 1em; /* 14px to em */
+            }
+
+            #box, #toggleDarkLightBox {
+                width: 100%;
+                padding: 0.5em;
+            }
+
+            .button {
+                font-size: 1.2em;
+            }
+
+            p {
+                font-size: 1.2em;
+            }
+
+            a {
+                padding: 0.1em 0.2em;
+                word-break: break-all;
+            }
+        }
+    </style>
+</head>
+
+<body id="body">
     <div id="box">
         <p><span class="gray"># 6uclz1's profile page</span></p>
     </div>
@@ -15,54 +172,55 @@
     <div id="box">
         <p>
             <span class="blue">GITHUB</span>&nbsp;=
-            "<a href="https://github.com/6uclz1/" target="_blank">https://github.com/6uclz1/</a>"
+            <a href="https://github.com/6uclz1/" target="_blank" rel="noopener noreferrer">"https://github.com/6uclz1/"</a>
+        </p>
+
+        <p>
+            <span class="blue">FORMALLY_TWITTER</span>&nbsp;=
+            <a href="https://x.com/6uclz1/" target="_blank" rel="noopener noreferrer">"https://x.com/6uclz1/"</a>
         </p>
 
         <p>
             <span class="blue">HATENA</span>&nbsp;=
-            "<a href="http://6uclz1.hatenablog.com/" target="_blank">http://6uclz1.hatenablog.com/</a>"
+            <a href="http://6uclz1.hatenablog.com/" target="_blank" rel="noopener noreferrer">"http://6uclz1.hatenablog.com/"</a>
         </p>
 
         <p>
             <span class="blue">NOTE</span>&nbsp;=
-            "<a href="https://note.com/6uclz1/" target="_blank">https://note.com/6uclz1/</a>"
+            <a href="https://note.com/6uclz1/" target="_blank" rel="noopener noreferrer">"https://note.com/6uclz1/"</a>
         </p>
 
         <p>
-            <span class="blue">QIITA</span>&nbsp;=
-            "<a href="https://qiita.com/6uclz1/" target="_blank">https://qiita.com/6uclz1/</a>"
-        </p>
-
-        <p>
-            <span class="blue">SLIDESHARE</span>&nbsp;=
-            "<a href="http://www.slideshare.net/6uclz1/" target="_blank">http://www.slideshare.net/6uclz1/</a>"
-        </p>
-
-        <p>
-            <span class="blue">SOUNDCLOUD</span>&nbsp;=
-            "<a href="https://soundcloud.com/6uclz1/" target="_blank">https://soundcloud.com/6uclz1/</a>"
-        </p>
-
-        <p>
-            <span class="blue">TUMBLR</span>&nbsp;=
-            "<a href="http://6uclz1.tumblr.com/" target="_blank">http://6uclz1.tumblr.com/</a>"
-        </p>
-
-        <p>
-            <span class="blue">TWITTER</span>&nbsp;=
-            "<a href="https://twitter.com/6uclz1/" target="_blank">https://twitter.com/6uclz1/</a>"
+            <span class="blue">SIZUKANA</span>&nbsp;=
+            <a href="https://sizu.me/6uclz1/" target="_blank" rel="noopener noreferrer">"https://sizu.me/6uclz1/"</a>
         </p>
 
         <p>
             <span class="blue">ZENN</span>&nbsp;=
-            "<a href="https://zenn.dev/6uclz1/" target="_blank">https://zenn.dev/6uclz1/</a>"
+            <a href="https://zenn.dev/6uclz1/" target="_blank" rel="noopener noreferrer">"https://zenn.dev/6uclz1/</a>
         </p>
 
+        <p>
+            <span class="blue">QIITA</span>&nbsp;=
+            <a href="https://qiita.com/6uclz1/" target="_blank" rel="noopener noreferrer">"https://qiita.com/6uclz1/"</a>
+        </p>
+
+        <p>
+            <span class="blue">SOUNDCLOUD</span>&nbsp;=
+            <a href="https://soundcloud.com/6uclz1/" target="_blank" rel="noopener noreferrer">"https://soundcloud.com/6uclz1/"</a>
+        </p>
+
+        <br/>
+
+        <p>
+            <span class="blue">THEME</span>&nbsp;=
+            <a href="https://github.com/morhetz/gruvbox" target="_blank" rel="noopener noreferrer">"gruvbox"</a>
+        </p>
     </div>
 
     <div id="toggleDarkLightBox">
         <button type="button" class="button" name="dark_light" onclick="toggleDarkLight()" title="Toggle dark/light mode">
-            Change Appearance
+            Toggle("<span id="modeText">dark</span>")
         </button>
     </div>
 
@@ -72,16 +230,32 @@
                 # Created by 6uclz1.
             </span>
         </p>
-        <p>
-            <span class="blue">THEME</span>&nbsp;=
-            "<a href="https://github.com/morhetz/gruvbox">gruvbox</a>"
-        </p>
     </div>
 
-    <script src="main.js"></script>
+    <script>
+        if (matchMedia('(prefers-color-scheme: dark)').matches) {
+            // dark mode
+            document.getElementById("body").className = "dark-mode";
+            document.getElementById("modeText").innerText = "light";
+        } else {
+            // light mode
+            document.getElementById("body").className = "light-mode";
+            document.getElementById("modeText").innerText = "dark";
+        }
 
+        function toggleDarkLight() {
+            let body = document.getElementById("body");
+            let modeText = document.getElementById("modeText");
+            let currentThemeClass = body.className;
+            if (currentThemeClass === "dark-mode") {
+                body.className = "light-mode";
+                modeText.innerText = "dark";
+            } else {
+                body.className = "dark-mode";
+                modeText.innerText = "light";
+            }
+        }
+    </script>
 </body>
-
-</head>
 
 </html>
