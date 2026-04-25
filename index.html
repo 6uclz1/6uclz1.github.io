@@ -487,6 +487,16 @@
           .map((channel) => Number(channel));
       }
 
+      function formatCanvasRgb(rgb) {
+        const [red, green, blue] = rgb.map((channel) => Math.round(clamp(channel, 0, 255)));
+        return `rgb(${red}, ${green}, ${blue})`;
+      }
+
+      function formatCanvasRgba(rgb, alpha) {
+        const [red, green, blue] = rgb.map((channel) => Math.round(clamp(channel, 0, 255)));
+        return `rgba(${red}, ${green}, ${blue}, ${clamp(alpha, 0, 1)})`;
+      }
+
       function createFlowNodes(count, buildNode) {
         const nodes = [];
 
@@ -859,7 +869,7 @@
 
       function drawStaticBackdrop() {
         ctx.clearRect(0, 0, state.width, state.height);
-        ctx.fillStyle = `rgb(${state.palette.bg})`;
+        ctx.fillStyle = formatCanvasRgb(state.paletteRgb.bg);
         ctx.fillRect(0, 0, state.width, state.height);
         drawGridBackdrop();
       }
@@ -895,7 +905,7 @@
 
       function drawGridBackdrop() {
         const maxAlpha = state.resolvedTheme === "dark" ? 0.46 : 0.34;
-        ctx.fillStyle = `rgb(${state.palette.fg})`;
+        ctx.fillStyle = formatCanvasRgb(state.paletteRgb.fg);
         for (let index = 0; index < state.densityField.length; index += 1) {
           const fillAlpha = smoothstep(0.08, 0.92, state.densityField[index]) * maxAlpha;
           if (fillAlpha <= 0.004) {
@@ -936,7 +946,7 @@
         state.frameNodes = resolveFrameNodes(time);
         stepFluidField(time, dt, state.frameNodes);
 
-        ctx.fillStyle = `rgba(${state.palette.bg} / ${CANVAS_TRAIL_ALPHA})`;
+        ctx.fillStyle = formatCanvasRgba(state.paletteRgb.bg, CANVAS_TRAIL_ALPHA);
         ctx.fillRect(0, 0, state.width, state.height);
         drawGridBackdrop();
 
@@ -1266,6 +1276,32 @@
                 lightFg !== darkFg &&
                 state.paletteRgb.fg.every((value) => Number.isFinite(value)) &&
                 state.paletteRgb.bg.every((value) => Number.isFinite(value))
+              );
+            }
+          },
+          {
+            name: "canvas colors use legacy comma-separated syntax",
+            test() {
+              if (typeof formatCanvasRgb !== "function" || typeof formatCanvasRgba !== "function") {
+                return false;
+              }
+
+              const rgb = formatCanvasRgb([244, 244, 241]);
+              const rgba = formatCanvasRgba([244, 244, 241], 0.1);
+              return (
+                rgb === "rgb(244, 244, 241)" &&
+                rgba === "rgba(244, 244, 241, 0.1)" &&
+                !rgb.includes("244 244 241") &&
+                !rgba.includes("/")
+              );
+            }
+          },
+          {
+            name: "canvas rgba alpha is clamped",
+            test() {
+              return (
+                formatCanvasRgba([244, 244, 241], -0.5) === "rgba(244, 244, 241, 0)" &&
+                formatCanvasRgba([244, 244, 241], 1.5) === "rgba(244, 244, 241, 1)"
               );
             }
           }
