@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   patch:
-    if: ${{ github.event.head_commit.message == 'Add one-time text header footer patch' }}
+    if: ${{ github.event.head_commit.message == 'Fix text header footer patch' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -112,10 +112,12 @@ jobs:
         }`
           );
 
-          if (/\.name \{[\s\S]*?(border:|background:|padding:|border-radius:|backdrop-filter:)/.test(html)) {
+          const nameBlock = html.match(/      \.name \{[\s\S]*?\n      \}/)?.[0] || '';
+          const footerBlock = html.match(/      \.footer-note \{[\s\S]*?\n      \}/)?.[0] || '';
+          if (!nameBlock || /\b(border|background|padding|border-radius|backdrop-filter)\b/.test(nameBlock)) {
             throw new Error('Header still has enclosing styles.');
           }
-          if (/\.footer-note \{[\s\S]*?(border:|background:|padding:|border-radius:|backdrop-filter:|box-shadow:)/.test(html)) {
+          if (!footerBlock || /\b(border|background|padding|border-radius|backdrop-filter|box-shadow)\b/.test(footerBlock)) {
             throw new Error('Footer still has enclosing styles.');
           }
 
