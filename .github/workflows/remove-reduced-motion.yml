@@ -1,0 +1,56 @@
+name: Remove reduced motion handling
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ github.event.head_commit.message == 'Add one-time reduced motion removal patch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch index.html
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const workflowPath = '.github/workflows/remove-reduced-motion.yml';
+          const path = 'index.html';
+          let html = fs.readFileSync(path, 'utf8');
+
+          html = html.replace(/\n      @media \(prefers-reduced-motion: reduce\) \{\n        \.theme-toggle,\n        \.name,\n        \.link-chip,\n        \.link-chip::before,\n        \.link-icon,\n        \.link-label \{\n          transition: none;\n        \}\n      \}/, '');
+
+          html = html.replace('      const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");\n', '');
+
+          html = html.replace(
+            '        if (state.initialized) {\n          if (!state.running || reducedMotionQuery.matches) {\n            drawStaticBackdrop();\n          }\n        }',
+            '        if (state.initialized && !state.running) {\n          drawStaticBackdrop();\n        }'
+          );
+
+          html = html.replace(
+            '        if (!state.running || reducedMotionQuery.matches) {',
+            '        if (!state.running) {'
+          );
+
+          html = html.replace(/\n        if \(reducedMotionQuery\.matches\) \{\n          drawStaticBackdrop\(\);\n          return false;\n        \}\n/, '\n');
+
+          html = html.replace(/\n        reducedMotionQuery\.addEventListener\("change", \(\) => \{\n          stopAnimation\(\);\n          startAnimation\(\);\n        \}\);/, '');
+
+          if (html.includes('prefers-reduced-motion') || html.includes('reducedMotionQuery')) {
+            throw new Error('Reduced motion handling was not fully removed.');
+          }
+
+          fs.writeFileSync(path, html);
+          fs.rmSync(workflowPath);
+          NODE
+      - name: Commit patched file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/remove-reduced-motion.yml
+          git commit -m "Remove reduced motion handling"
+          git push
