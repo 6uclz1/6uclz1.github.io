@@ -190,11 +190,10 @@
       .name {
         display: block;
         margin: 0;
-        border: 1px solid var(--line);
-        background: var(--panel);
+        border: 0;
+        background: transparent;
         color: var(--muted);
-        padding: 0.8rem 1rem;
-        border-radius: 999px;
+        padding: 0;
         font-family: inherit;
         font-size: clamp(1rem, 1.35vw, 1.16rem);
         line-height: 1;
@@ -202,11 +201,6 @@
         font-weight: 100;
         max-width: 100%;
         overflow-wrap: anywhere;
-        backdrop-filter: blur(18px);
-        transition:
-          transform 200ms ease,
-          border-color 200ms ease,
-          background-color 200ms ease;
       }
 
       .links {
@@ -338,19 +332,14 @@
         right: 1.5rem;
         bottom: 1.4rem;
         z-index: 1;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 2.75rem;
-        padding: 0.8rem 1rem;
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        background: var(--panel);
+        display: block;
+        border: 0;
+        background: transparent;
+        padding: 0;
         color: var(--muted);
         font-size: 0.76rem;
         letter-spacing: 0.14em;
-        backdrop-filter: blur(18px);
-        box-shadow: var(--shadow);
+        box-shadow: none;
       }
 
       .test-banner {
@@ -384,7 +373,6 @@
         }
 
         .name {
-          padding-inline: 0.85rem;
           line-height: 1.15;
         }
 
@@ -395,7 +383,6 @@
         .footer-note {
           right: 1rem;
           bottom: 1rem;
-          padding: 0.75rem 0.9rem;
         }
       }
 
@@ -1329,6 +1316,22 @@
               profile.links = previousLinks;
               renderProfile();
               return result;
+            }
+          },
+          {
+            name: "header and footer render text only without boxes",
+            test() {
+              const profileNameStyle = getComputedStyle(document.getElementById("profile-name"));
+              const footerStyle = getComputedStyle(document.querySelector(".footer-note"));
+              return (
+                profileNameStyle.borderTopWidth === "0px" &&
+                profileNameStyle.backgroundColor === "rgba(0, 0, 0, 0)" &&
+                profileNameStyle.paddingTop === "0px" &&
+                footerStyle.borderTopWidth === "0px" &&
+                footerStyle.backgroundColor === "rgba(0, 0, 0, 0)" &&
+                footerStyle.paddingTop === "0px" &&
+                footerStyle.boxShadow === "none"
+              );
             }
           },
           {
