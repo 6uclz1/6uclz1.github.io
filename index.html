@@ -453,12 +453,14 @@
       const FLOW_TABLE = new Uint16Array(512);
       const FLOW_FIELD_SCALE = 2;
       const FLOW_NODE_COUNT_RANGE = { min: 3, max: 5 };
+      const FLOW_FIELD_SEED = 0x6c6f7a31;
       const FLOW_FIELD_FADE = 0.992;
       const CANVAS_TRAIL_ALPHA = 0.1;
+      const VISUAL_GRID_SIZE = 8;
       const CANVAS_QUALITY_PROFILES = Object.freeze({
-        high: Object.freeze({ name: "high", gridSize: 8, dprCap: 1.5, fps: 30 }),
-        balanced: Object.freeze({ name: "balanced", gridSize: 10, dprCap: 1.25, fps: 24 }),
-        low: Object.freeze({ name: "low", gridSize: 12, dprCap: 1, fps: 20 })
+        high: Object.freeze({ name: "high", gridSize: VISUAL_GRID_SIZE, dprCap: 1.5, fps: 30 }),
+        balanced: Object.freeze({ name: "balanced", gridSize: VISUAL_GRID_SIZE, dprCap: 1.25, fps: 24 }),
+        low: Object.freeze({ name: "low", gridSize: VISUAL_GRID_SIZE, dprCap: 1, fps: 20 })
       });
       const CANVAS_QUALITY_ORDER = ["high", "balanced", "low"];
       const SLOW_FRAME_LIMIT = 4;
@@ -541,6 +543,18 @@
 
       function randomIntBetween(min, max, randomValue = Math.random) {
         return Math.floor(randomBetween(min, max + 1, randomValue));
+      }
+
+      function createSeededRandom(seed) {
+        let value = Number.isFinite(seed) ? seed >>> 0 : 0;
+
+        return () => {
+          value = (value + 0x6d2b79f5) >>> 0;
+          let mixed = value;
+          mixed = Math.imul(mixed ^ (mixed >>> 15), mixed | 1);
+          mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), mixed | 61);
+          return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
+        };
       }
 
       function grad(hash, x, y) {
@@ -711,6 +725,10 @@
             };
           })
         };
+      }
+
+      function createStableFlowFieldConfig(seed = FLOW_FIELD_SEED) {
+        return createFlowFieldConfig(createSeededRandom(seed));
       }
 
       function perlin2d(x, y) {
@@ -1133,6 +1151,13 @@
         return drawnDots;
       }
 
+      function resolveCanvasDpr(rawDpr, cap) {
+        const nextRawDpr = Number.isFinite(rawDpr) && rawDpr > 0 ? rawDpr : 1;
+        const nextCap = Number.isFinite(cap) && cap > 0 ? cap : 1;
+        const bucket = nextRawDpr >= 2 && nextCap >= 2 ? 2 : 1;
+        return Math.min(bucket, Math.floor(nextCap));
+      }
+
       function resizeCanvas(options = {}) {
         const targetCanvas = state.canvas;
         const context = state.ctx;
@@ -1143,7 +1168,7 @@
         const force = options.force === true;
         const nextWidth = window.innerWidth;
         const nextHeight = window.innerHeight;
-        const nextDpr = Math.min(window.devicePixelRatio || 1, state.dprCap);
+        const nextDpr = resolveCanvasDpr(window.devicePixelRatio || 1, state.dprCap);
         if (
           !force &&
           state.width === nextWidth &&
@@ -1166,7 +1191,7 @@
         context.clearRect(0, 0, state.width, state.height);
         state.fieldColumns = Math.ceil(state.width / state.gridSize) + 1;
         state.fieldRows = Math.ceil(state.height / state.gridSize) + 1;
-        state.flowFieldConfig = createFlowFieldConfig();
+        state.flowFieldConfig = createStableFlowFieldConfig();
         state.frameNodes = resolveFrameNodes(0);
         initializeGridGeometry();
         seedDensityField();
@@ -1547,6 +1572,66 @@
                     throw new Error("context unavailable");
                   }
                 }) === null
+              );
+            }
+          },
+          {
+            name: "createSeededRandom returns repeatable sequences",
+            test() {
+              if (typeof createSeededRandom !== "function") {
+                return false;
+              }
+
+              const firstRandom = createSeededRandom(12345);
+              const secondRandom = createSeededRandom(12345);
+              const firstSequence = [firstRandom(), firstRandom(), firstRandom()];
+              const secondSequence = [secondRandom(), secondRandom(), secondRandom()];
+              return firstSequence.every((value, index) => value === secondSequence[index] && value >= 0 && value < 1);
+            }
+          },
+          {
+            name: "createStableFlowFieldConfig returns repeatable config",
+            test() {
+              if (typeof createStableFlowFieldConfig !== "function") {
+                return false;
+              }
+
+              return JSON.stringify(createStableFlowFieldConfig()) === JSON.stringify(createStableFlowFieldConfig());
+            }
+          },
+          {
+            name: "forced canvas resize keeps stable flow config",
+            test() {
+              resizeCanvas({ force: true });
+              const firstConfig = JSON.stringify(state.flowFieldConfig);
+              resizeCanvas({ force: true });
+              const secondConfig = JSON.stringify(state.flowFieldConfig);
+              return firstConfig === secondConfig;
+            }
+          },
+          {
+            name: "quality profiles share the visual grid size",
+            test() {
+              if (typeof VISUAL_GRID_SIZE !== "number") {
+                return false;
+              }
+
+              return Object.values(CANVAS_QUALITY_PROFILES).every((profile) => profile.gridSize === VISUAL_GRID_SIZE);
+            }
+          },
+          {
+            name: "resolveCanvasDpr buckets fractional dpr below cap",
+            test() {
+              if (typeof resolveCanvasDpr !== "function") {
+                return false;
+              }
+
+              return (
+                resolveCanvasDpr(1.25, 1.5) === 1 &&
+                resolveCanvasDpr(1.8, 1.5) === 1 &&
+                resolveCanvasDpr(2, 1.5) === 1 &&
+                resolveCanvasDpr(2, 2) === 2 &&
+                resolveCanvasDpr(3, 2) === 2
               );
             }
           },
