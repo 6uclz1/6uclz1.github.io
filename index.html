@@ -287,7 +287,7 @@
       const GRID_SIZE = 8;
       const DOT_SIZE = 2;
       const FRAME_INTERVAL = 42;
-      const FLOW_SCALE = 2;
+      const FIELD_FADE = 0.96;
       const THEME_COLORS = {
         light: {
           bg: "#f4f4f1",
@@ -316,6 +316,12 @@
         width: 0,
         height: 0,
         dpr: 1,
+        fieldColumns: 0,
+        fieldRows: 0,
+        densityField: new Float32Array(0),
+        nextDensityField: new Float32Array(0),
+        dotPositionsX: new Uint16Array(0),
+        dotPositionsY: new Uint16Array(0),
         lastFrame: 0,
         frame: 0,
         rafId: 0,
@@ -384,33 +390,67 @@
         canvas.style.height = state.height + "px";
         context.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
         context.imageSmoothingEnabled = false;
+        state.fieldColumns = Math.ceil(state.width / GRID_SIZE) + 1;
+        state.fieldRows = Math.ceil(state.height / GRID_SIZE) + 1;
+        initializeGrid();
+        seedDensityField();
         drawBackground(state.frame * FRAME_INTERVAL);
         return true;
       }
 
-      function waveValue(x, y, time) {
-        const slowTime = Math.floor(time / 80);
-        const a = Math.sin((x * 7 + y * 3 + slowTime) / 53);
-        const b = Math.cos((x * 5 - y * 9 + slowTime * 2) / 71);
-        const c = Math.sin((x + y + slowTime * 3) / 37);
+      function fieldIndex(x, y) {
+        return y * state.fieldColumns + x;
+      }
+
+      function initializeGrid() {
+        const size = state.fieldColumns * state.fieldRows;
+        state.dotPositionsX = new Uint16Array(size);
+        state.dotPositionsY = new Uint16Array(size);
+
+        for (let y = 0; y < state.fieldRows; y += 1) {
+          for (let x = 0; x < state.fieldColumns; x += 1) {
+            const index = fieldIndex(x, y);
+            state.dotPositionsX[index] = x * GRID_SIZE + Math.floor(GRID_SIZE / 2);
+            state.dotPositionsY[index] = y * GRID_SIZE + Math.floor(GRID_SIZE / 2);
+          }
+        }
+      }
+
+      function seedDensityField() {
+        const size = state.fieldColumns * state.fieldRows;
+        state.densityField = new Float32Array(size);
+        state.nextDensityField = new Float32Array(size);
+
+        for (let y = 0; y < state.fieldRows; y += 1) {
+          for (let x = 0; x < state.fieldColumns; x += 1) {
+            state.densityField[fieldIndex(x, y)] = baseDensityAt(x, y, 0);
+          }
+        }
+      }
+
+      function baseDensityAt(x, y, time) {
+        const slowTime = Math.floor(time / 90);
+        const a = Math.sin((x * 7 + y * 3 + slowTime) / 17);
+        const b = Math.cos((x * 5 - y * 9 + slowTime * 2) / 23);
+        const c = Math.sin((x + y + slowTime * 3) / 19);
         return a + b + c;
       }
 
       function nodePosition(node, time) {
         const t = time / 1000;
         const x =
-          (state.width * node.x) / 100 +
-          Math.sin(t * node.speedX / 10 + node.phase) * Math.floor(state.width / 8);
+          (state.fieldColumns * node.x) / 100 +
+          Math.sin(t * node.speedX / 10 + node.phase) * Math.floor(state.fieldColumns / 8);
         const y =
-          (state.height * node.y) / 100 +
-          Math.cos(t * node.speedY / 10 + node.phase) * Math.floor(state.height / 8);
+          (state.fieldRows * node.y) / 100 +
+          Math.cos(t * node.speedY / 10 + node.phase) * Math.floor(state.fieldRows / 8);
         return { x, y };
       }
 
       function flowAt(x, y, time) {
-        let vx = Math.sin((y + time / 18) / 45) * 2;
-        let vy = Math.cos((x - time / 21) / 45) * 2;
-        let density = waveValue(x, y, time);
+        let vx = Math.sin((y + time / 180) / 9) * 0.7;
+        let vy = Math.cos((x - time / 210) / 9) * 0.7;
+        let density = baseDensityAt(x, y, time);
 
         for (let index = 0; index < FLOW_NODES.length; index += 1) {
           const node = FLOW_NODES[index];
@@ -418,7 +458,8 @@
           const dx = x - point.x;
           const dy = y - point.y;
           const distanceSquared = dx * dx + dy * dy + 1;
-          const radiusSquared = node.radius * node.radius;
+          const radius = Math.max(8, Math.floor(node.radius / GRID_SIZE));
+          const radiusSquared = radius * radius;
 
           if (distanceSquared > radiusSquared) {
             continue;
@@ -426,25 +467,48 @@
 
           const influence = Math.floor((radiusSquared - distanceSquared) / radiusSquared * 100) / 100;
           const swirl = node.strength * influence / Math.sqrt(distanceSquared);
-          vx += -dy * swirl / 8;
-          vy += dx * swirl / 8;
+          vx += -dy * swirl / 80;
+          vy += dx * swirl / 80;
           density += influence * (node.strength > 0 ? 3 : 2);
         }
 
         return { vx, vy, density };
       }
 
+      function sampleDensity(x, y) {
+        const sampleX = Math.max(0, Math.min(state.fieldColumns - 1, Math.round(x)));
+        const sampleY = Math.max(0, Math.min(state.fieldRows - 1, Math.round(y)));
+        return state.densityField[fieldIndex(sampleX, sampleY)];
+      }
+
+      function stepDensityField(time) {
+        for (let y = 0; y < state.fieldRows; y += 1) {
+          for (let x = 0; x < state.fieldColumns; x += 1) {
+            const index = fieldIndex(x, y);
+            const flow = flowAt(x, y, time);
+            const advected = sampleDensity(x - flow.vx, y - flow.vy);
+            const injected = flow.density > 2 ? 0.28 : 0;
+            const nextValue = advected * FIELD_FADE + baseDensityAt(x, y, time) * 0.05 + injected;
+            state.nextDensityField[index] = Math.max(-3, Math.min(6, nextValue));
+          }
+        }
+
+        const previous = state.densityField;
+        state.densityField = state.nextDensityField;
+        state.nextDensityField = previous;
+      }
+
       function paletteIndex(value, maxIndex) {
-        if (value < -1) {
+        if (value < -2) {
           return 1;
         }
-        if (value < 1) {
+        if (value < 0) {
           return 2;
         }
-        if (value < 3) {
+        if (value < 2) {
           return 3;
         }
-        if (value < 5) {
+        if (value < 4) {
           return 4;
         }
         return maxIndex;
@@ -461,27 +525,20 @@
 
         const palette = colors.palette;
         const maxIndex = palette.length - 1;
-        const offset = state.frame % GRID_SIZE;
         let drawnDots = 0;
+        stepDensityField(time);
 
-        for (let y = -GRID_SIZE; y < state.height + GRID_SIZE; y += GRID_SIZE) {
-          for (let x = -GRID_SIZE; x < state.width + GRID_SIZE; x += GRID_SIZE) {
-            const baseX = x + offset;
-            const baseY = y - offset;
-            const flow = flowAt(baseX, baseY, time);
-            const bucket = paletteIndex(flow.density, maxIndex);
+        for (let index = 0; index < state.densityField.length; index += 1) {
+          const bucket = paletteIndex(state.densityField[index], maxIndex);
 
-            if (bucket === 0) {
-              continue;
-            }
-
-            const drawX = Math.round(baseX + flow.vx * FLOW_SCALE);
-            const drawY = Math.round(baseY + flow.vy * FLOW_SCALE);
-            const size = bucket >= 4 ? DOT_SIZE + 1 : DOT_SIZE;
-            context.fillStyle = palette[bucket];
-            context.fillRect(drawX, drawY, size, size);
-            drawnDots += 1;
+          if (bucket === 0) {
+            continue;
           }
+
+          const size = bucket >= 4 ? DOT_SIZE + 1 : DOT_SIZE;
+          context.fillStyle = palette[bucket];
+          context.fillRect(state.dotPositionsX[index], state.dotPositionsY[index], size, size);
+          drawnDots += 1;
         }
 
         return drawnDots;
