@@ -7,8 +7,14 @@
     <script>
       (() => {
         const storedTheme = localStorage.getItem("theme");
-        const preference = storedTheme === "light" || storedTheme === "dark" ? storedTheme : "dark";
-        document.documentElement.dataset.theme = preference;
+        const preference = storedTheme === "light" || storedTheme === "dark" || storedTheme === "system"
+          ? storedTheme
+          : "system";
+        const resolved = preference === "system"
+          ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+          : preference;
+
+        document.documentElement.dataset.theme = resolved;
       })();
     </script>
     <style>
@@ -16,22 +22,30 @@
         color-scheme: light;
         --bg: #f4f4f1;
         --fg: #0d0d0f;
-        --dot: #0d0d0f;
-        --panel: #fffefa;
-        --line: #b8b8b0;
-        --muted: #36363a;
-        --shadow: 0 18px 48px #d6d6cf;
+        --muted: rgba(13, 13, 15, 0.64);
+        --line: rgba(13, 13, 15, 0.12);
+        --panel: rgba(255, 255, 255, 0.42);
+        --accent: rgba(13, 13, 15, 0.9);
+        --bg-rgb: 244 244 241;
+        --fg-rgb: 13 13 15;
+        --noise-rgb: 10 10 12;
+        --shadow: 0 28px 80px rgba(13, 13, 15, 0.08);
+        --hover-shadow: 0 18px 42px rgba(13, 13, 15, 0.1);
       }
 
       :root[data-theme="dark"] {
         color-scheme: dark;
         --bg: #09090b;
         --fg: #f4f4f1;
-        --dot: #f4f4f1;
-        --panel: #141417;
-        --line: #5f5f66;
-        --muted: #deded8;
-        --shadow: 0 18px 48px #000000;
+        --muted: rgba(244, 244, 241, 0.64);
+        --line: rgba(244, 244, 241, 0.14);
+        --panel: rgba(255, 255, 255, 0.05);
+        --accent: rgba(244, 244, 241, 0.92);
+        --bg-rgb: 9 9 11;
+        --fg-rgb: 244 244 241;
+        --noise-rgb: 246 246 243;
+        --shadow: 0 28px 80px rgba(0, 0, 0, 0.24);
+        --hover-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
       }
 
       * {
@@ -47,67 +61,26 @@
       body {
         position: relative;
         overflow-x: hidden;
-        background: var(--bg);
+        background:
+          radial-gradient(circle at top left, rgba(127, 127, 127, 0.08), transparent 38%),
+          radial-gradient(circle at bottom right, rgba(127, 127, 127, 0.06), transparent 30%),
+          var(--bg);
         color: var(--fg);
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         font-size: 16px;
-        font-weight: 300;
-      }
-
-      body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        z-index: 0;
-        pointer-events: none;
-        background-image: radial-gradient(
-          circle,
-          var(--dot) 0,
-          var(--dot) 2px,
-          transparent 2px
-        );
-        background-position: 6px 6px;
-        background-size: 12px 12px;
+        font-weight: 100;
+        transition:
+          background-color 240ms ease,
+          color 240ms ease;
       }
 
       .noise-field {
         position: fixed;
         inset: 0;
-        z-index: 0;
         width: 100%;
         height: 100%;
+        z-index: 0;
         display: block;
-        pointer-events: none;
-      }
-
-      .page-header {
-        position: fixed;
-        top: 1.5rem;
-        left: 1.5rem;
-        z-index: 3;
-        max-width: calc(100vw - 9rem);
-      }
-
-      .name,
-      .theme-toggle,
-      .footer-note,
-      .link-chip {
-        border: 1px solid var(--line);
-        background: var(--panel);
-        box-shadow: var(--shadow);
-      }
-
-      .name {
-        display: block;
-        margin: 0;
-        padding: 0.85rem 1rem;
-        border-radius: 999px;
-        color: var(--fg);
-        font-size: clamp(1rem, 1.35vw, 1.16rem);
-        line-height: 1.15;
-        letter-spacing: 0.08em;
-        font-weight: 400;
-        overflow-wrap: anywhere;
       }
 
       .theme-toggle {
@@ -115,23 +88,41 @@
         top: 1.5rem;
         right: 1.5rem;
         z-index: 3;
-        min-height: 2.75rem;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--muted);
         padding: 0.8rem 1rem;
         border-radius: 999px;
-        color: var(--fg);
-        font: inherit;
-        font-size: 0.78rem;
-        letter-spacing: 0.12em;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
+        font-family: inherit;
+        font-size: 0.74rem;
+        font-weight: 100;
         cursor: pointer;
+        backdrop-filter: blur(18px);
+        transition:
+          transform 360ms cubic-bezier(0.16, 1, 0.3, 1),
+          border-color 360ms ease,
+          background-color 360ms ease,
+          box-shadow 360ms ease,
+          color 360ms ease;
+      }
+
+      .page-header {
+        position: fixed;
+        top: 1.5rem;
+        left: 1.5rem;
+        z-index: 3;
+        max-width: calc(100vw - 3rem);
       }
 
       .theme-toggle:hover,
-      .theme-toggle:focus-visible,
-      .link-chip:hover,
-      .link-chip:focus-visible {
+      .theme-toggle:focus-visible {
         transform: translateY(-2px);
-        border-color: var(--fg);
+        border-color: var(--accent);
+        background: rgb(var(--fg-rgb) / 0.08);
+        box-shadow: var(--hover-shadow);
+        color: var(--fg);
         outline: none;
       }
 
@@ -145,48 +136,114 @@
       }
 
       .portrait {
+        font-family: inherit;
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
         width: min(100%, 36rem);
-        padding: clamp(1.2rem, 4vw, 3rem);
+        padding: clamp(3rem, 4vw, 3rem);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: transparent;
+        box-shadow: var(--shadow);
+      }
+
+      .portrait::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background: linear-gradient(
+          90deg,
+          rgb(var(--bg-rgb) / 0.00),
+          rgb(var(--bg-rgb) / 0.00)
+        );
+        -webkit-backdrop-filter: blur(2px) saturate(0%);
+        backdrop-filter: blur(2px) saturate(0%);
+      }
+
+      .portrait > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .name {
+        display: block;
+        margin: 0;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        color: var(--muted);
+        padding: 0.8rem 1rem;
+        border-radius: 999px;
+        font-family: inherit;
+        font-size: clamp(1rem, 1.35vw, 1.16rem);
+        line-height: 1;
+        letter-spacing: 0.08em;
+        font-weight: 100;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        backdrop-filter: blur(18px);
+        transition:
+          transform 200ms ease,
+          border-color 200ms ease,
+          background-color 200ms ease;
       }
 
       .links {
+        --link-columns: 1;
+        --link-gap: 0.75rem;
         display: grid;
-        gap: 0.75rem;
+        grid-template-columns: repeat(
+          var(--link-columns),
+          minmax(0, calc((100% - (var(--link-columns) - 1) * var(--link-gap)) / var(--link-columns)))
+        );
+        gap: var(--link-gap);
         width: min(100%, 48rem);
-        margin: 0 auto;
+        margin: 0 auto 0;
+        justify-items: center;
+        justify-content: center;
       }
 
       .link-chip {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
         display: grid;
         grid-template-columns: 1rem minmax(0, 1fr) 1rem;
         align-items: center;
+        justify-content: center;
         gap: 0.5rem;
-        min-height: 2.9rem;
+        min-height: 2.75rem;
         width: min(100%, 30rem);
-        margin: 0 auto;
         padding: 0.8rem 1rem;
+        border: 1px solid var(--line);
         border-radius: 999px;
+        box-sizing: border-box;
         color: var(--fg);
         text-decoration: none;
-        transition: transform 180ms ease, border-color 180ms ease;
+        font-size: 0.96rem;
+        letter-spacing: 0.04em;
+        background: rgba(255, 255, 255, 0.02);
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+        transition:
+          transform 380ms cubic-bezier(0.16, 1, 0.3, 1),
+          border-color 380ms ease,
+          background-color 380ms ease,
+          box-shadow 380ms ease;
       }
 
-      .link-marker {
-        display: block;
-        width: 1rem;
-        height: 1rem;
-        border: 2px solid var(--fg);
-        background: var(--dot);
-      }
-
-      .link-label {
-        justify-self: center;
-        color: var(--muted);
-        text-align: center;
-        line-height: 1.1;
-        letter-spacing: 0.12em;
-        font-size: 0.9rem;
-        font-weight: 400;
+      .link-chip::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        border-radius: inherit;
+        background:
+          radial-gradient(circle at 20% 50%, rgb(var(--fg-rgb) / 0.12), transparent 38%),
+          linear-gradient(90deg, rgb(var(--fg-rgb) / 0.08), rgb(var(--fg-rgb) / 0.03));
+        opacity: 0;
+        transition: opacity 420ms ease;
       }
 
       .link-chip::after {
@@ -195,17 +252,86 @@
         height: 1rem;
       }
 
+      .link-chip > *,
+      .link-chip::after {
+        position: relative;
+        z-index: 1;
+      }
+
+      .link-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 1rem;
+        width: 1rem;
+        height: 1rem;
+        color: var(--fg);
+        transform: translateX(0.25rem);
+        transition:
+          color 380ms ease,
+          transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .link-icon svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        fill: currentColor;
+      }
+
+      .link-chip:hover,
+      .link-chip:focus-visible {
+        transform: translateY(-3px);
+        border-color: var(--accent);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: var(--hover-shadow);
+        outline: none;
+      }
+
+      .link-chip:hover::before,
+      .link-chip:focus-visible::before {
+        opacity: 1;
+      }
+
+      .link-chip:hover .link-icon,
+      .link-chip:focus-visible .link-icon {
+        transform: translateX(0.32rem) scale(1.06);
+      }
+
+      .link-label {
+        color: var(--muted);
+        justify-self: center;
+        text-align: center;
+        line-height: 1;
+        letter-spacing: 0.14em;
+        font-size: 0.88rem;
+        font-weight: 100;
+        transition: color 380ms ease;
+      }
+
+      .link-chip:hover .link-label,
+      .link-chip:focus-visible .link-label {
+        color: var(--fg);
+      }
+
       .footer-note {
         position: fixed;
         right: 1.5rem;
         bottom: 1.4rem;
-        z-index: 2;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         min-height: 2.75rem;
         padding: 0.8rem 1rem;
+        border: 1px solid var(--line);
         border-radius: 14px;
+        background: var(--panel);
         color: var(--muted);
         font-size: 0.76rem;
-        letter-spacing: 0.12em;
+        letter-spacing: 0.14em;
+        backdrop-filter: blur(18px);
+        box-shadow: var(--shadow);
       }
 
       .test-banner {
@@ -215,13 +341,13 @@
         z-index: 4;
         transform: translateX(-50%);
         padding: 0.6rem 0.9rem;
-        border: 1px solid var(--line);
         border-radius: 999px;
+        border: 1px solid var(--line);
         background: var(--panel);
-        color: var(--fg);
         font-size: 0.76rem;
         letter-spacing: 0.08em;
         text-transform: uppercase;
+        backdrop-filter: blur(18px);
       }
 
       @media (max-width: 720px) {
@@ -238,9 +364,30 @@
           padding-inline: 0.85rem;
         }
 
+        .name {
+          padding-inline: 0.85rem;
+          line-height: 1.15;
+        }
+
+        .portrait {
+          padding: 1.2rem;
+        }
+
         .footer-note {
           right: 1rem;
           bottom: 1rem;
+          padding: 0.75rem 0.9rem;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .theme-toggle,
+        .name,
+        .link-chip,
+        .link-chip::before,
+        .link-icon,
+        .link-label {
+          transition: none;
         }
       }
     </style>
@@ -255,9 +402,9 @@
       id="theme-toggle"
       type="button"
       aria-label="Toggle theme"
-      aria-pressed="true"
+      aria-pressed="false"
     >
-      Light
+      Theme
     </button>
 
     <main class="shell">
@@ -266,7 +413,7 @@
       </section>
     </main>
 
-    <footer class="footer-note">CopyRight &copy;6uclz1</footer>
+    <footer class="footer-note">CopyRight ©6uclz1</footer>
 
     <script>
       const profile = {
@@ -284,53 +431,182 @@
       };
 
       const THEME_KEY = "theme";
-      const GRID_SIZE = 8;
-      const DOT_SIZE = 2;
-      const FRAME_INTERVAL = 42;
-      const FIELD_FADE = 0.96;
-      const THEME_COLORS = {
-        light: {
-          bg: "#f4f4f1",
-          fallbackDot: "#0d0d0f",
-          palette: ["#f4f4f1", "#dadad4", "#c1c1bb", "#999994", "#56565a", "#0d0d0f"]
-        },
-        dark: {
-          bg: "#09090b",
-          fallbackDot: "#f4f4f1",
-          palette: ["#09090b", "#151519", "#24242a", "#595960", "#aaa9a2", "#f4f4f1"]
-        }
-      };
-
-      const FLOW_NODES = [
-        { x: 25, y: 30, radius: 260, strength: 32, speedX: 19, speedY: 23, phase: 0 },
-        { x: 72, y: 28, radius: 320, strength: -38, speedX: 17, speedY: 29, phase: 2 },
-        { x: 42, y: 74, radius: 300, strength: 36, speedX: 31, speedY: 13, phase: 4 },
-        { x: 82, y: 72, radius: 220, strength: -28, speedX: 11, speedY: 37, phase: 6 }
+      const FLOW_PERMUTATION = [
+        151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225,
+        140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247,
+        120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57,
+        177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175,
+        74, 165, 71, 134, 139, 48, 27, 166, 77, 146, 158, 231, 83, 111, 229,
+        122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244, 102,
+        143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89,
+        18, 169, 200, 196, 135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173,
+        186, 3, 64, 52, 217, 226, 250, 124, 123, 5, 202, 38, 147, 118, 126, 255,
+        82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42, 223,
+        183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155,
+        167, 43, 172, 9, 129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232,
+        178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144,
+        12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239, 107, 49, 192,
+        214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4,
+        150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128,
+        195, 78, 66, 215, 61, 156, 180
       ];
-
+      const FLOW_TABLE = new Uint16Array(512);
+      const FLOW_FIELD_SCALE = 2;
+      const FLOW_NODE_COUNT_RANGE = { min: 3, max: 5 };
+      const FLOW_FIELD_SEED = 0x6c6f7a31;
+      const FLOW_FIELD_FADE = 0.992;
+      const CANVAS_TRAIL_ALPHA = 0.1;
+      const VISUAL_GRID_SIZE = 8;
+      const CANVAS_QUALITY_PROFILES = Object.freeze({
+        high: Object.freeze({ name: "high", gridSize: VISUAL_GRID_SIZE, dprCap: 1.5, fps: 30 }),
+        balanced: Object.freeze({ name: "balanced", gridSize: VISUAL_GRID_SIZE, dprCap: 1.25, fps: 24 }),
+        low: Object.freeze({ name: "low", gridSize: VISUAL_GRID_SIZE, dprCap: 1, fps: 20 })
+      });
+      const CANVAS_QUALITY_ORDER = ["high", "balanced", "low"];
+      const SLOW_FRAME_LIMIT = 4;
+      const SLOW_FRAME_FACTOR = 1.65;
+      const ALPHA_BUCKET_COUNT = 8;
+      const BASE_VORTEX_RADIUS_RANGE = { min: 20, max: 36 };
+      const VORTEX_RADIUS_RANGE = {
+        min: BASE_VORTEX_RADIUS_RANGE.min * FLOW_FIELD_SCALE,
+        max: BASE_VORTEX_RADIUS_RANGE.max * FLOW_FIELD_SCALE
+      };
+      const BASE_EMITTER_SPREAD_RANGE = { min: 220, max: 380 };
+      const EMITTER_SPREAD_RANGE = {
+        min: BASE_EMITTER_SPREAD_RANGE.min * FLOW_FIELD_SCALE,
+        max: BASE_EMITTER_SPREAD_RANGE.max * FLOW_FIELD_SCALE
+      };
       const canvas = document.querySelector(".noise-field");
-      const context = createCanvasContext(canvas);
+      const initialCanvasContext = createCanvasContext(canvas);
       const themeToggle = document.getElementById("theme-toggle");
+      const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
       const state = {
-        theme: document.documentElement.dataset.theme === "light" ? "light" : "dark",
         width: 0,
         height: 0,
         dpr: 1,
+        dprCap: CANVAS_QUALITY_PROFILES.high.dprCap,
+        rafId: 0,
+        resizeRafId: 0,
+        running: false,
+        lastFrame: 0,
+        frameInterval: 1000 / CANVAS_QUALITY_PROFILES.high.fps,
+        slowFrameCount: 0,
+        initialized: false,
+        themePreference: "system",
+        resolvedTheme: "light",
+        canvas,
+        ctx: initialCanvasContext,
+        qualityProfileName: CANVAS_QUALITY_PROFILES.high.name,
+        qualityProfile: CANVAS_QUALITY_PROFILES.high,
         fieldColumns: 0,
         fieldRows: 0,
         densityField: new Float32Array(0),
         nextDensityField: new Float32Array(0),
+        flowFieldConfig: null,
+        frameNodes: {
+          vortices: [],
+          emitters: []
+        },
+        rowDriftX: new Float32Array(0),
+        columnDriftY: new Float32Array(0),
         dotPositionsX: new Uint16Array(0),
         dotPositionsY: new Uint16Array(0),
-        lastFrame: 0,
-        frame: 0,
-        rafId: 0,
-        running: false
+        palette: {
+          bg: "244 244 241",
+          fg: "13 13 15",
+          noise: "10 10 12"
+        },
+        paletteRgb: {
+          bg: [244, 244, 241],
+          fg: [13, 13, 15],
+          noise: [10, 10, 12]
+        },
+        gridSize: 8
       };
+
+      for (let index = 0; index < 512; index += 1) {
+        FLOW_TABLE[index] = FLOW_PERMUTATION[index % 256];
+      }
+
+      function fade(value) {
+        return value * value * value * (value * (value * 6 - 15) + 10);
+      }
+
+      function lerp(start, end, amount) {
+        return start + amount * (end - start);
+      }
+
+      function randomBetween(min, max, randomValue = Math.random) {
+        return lerp(min, max, randomValue());
+      }
+
+      function randomIntBetween(min, max, randomValue = Math.random) {
+        return Math.floor(randomBetween(min, max + 1, randomValue));
+      }
+
+      function createSeededRandom(seed) {
+        let value = Number.isFinite(seed) ? seed >>> 0 : 0;
+
+        return () => {
+          value = (value + 0x6d2b79f5) >>> 0;
+          let mixed = value;
+          mixed = Math.imul(mixed ^ (mixed >>> 15), mixed | 1);
+          mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), mixed | 61);
+          return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function grad(hash, x, y) {
+        switch (hash & 3) {
+          case 0:
+            return x + y;
+          case 1:
+            return -x + y;
+          case 2:
+            return x - y;
+          default:
+            return -x - y;
+        }
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function parseRgbTriplet(value) {
+        return value
+          .trim()
+          .split(/\s+/)
+          .slice(0, 3)
+          .map((channel) => Number(channel));
+      }
+
+      function formatCanvasRgb(rgb) {
+        const [red, green, blue] = rgb.map((channel) => Math.round(clamp(channel, 0, 255)));
+        return `rgb(${red}, ${green}, ${blue})`;
+      }
+
+      function formatCanvasRgba(rgb, alpha) {
+        const [red, green, blue] = rgb.map((channel) => Math.round(clamp(channel, 0, 255)));
+        return `rgba(${red}, ${green}, ${blue}, ${clamp(alpha, 0, 1)})`;
+      }
 
       function createCanvasContext(canvasElement) {
         if (!canvasElement || typeof canvasElement.getContext !== "function") {
           return null;
+        }
+
+        try {
+          const acceleratedContext = canvasElement.getContext("2d", {
+            alpha: false,
+            desynchronized: true
+          });
+          if (acceleratedContext) {
+            return acceleratedContext;
+          }
+        } catch (error) {
+          // Some browsers throw for context attributes; fall back to a plain 2d context.
         }
 
         try {
@@ -340,14 +616,428 @@
         }
       }
 
+      function selectQualityProfile(environment = navigator) {
+        const connection = environment?.connection || environment?.mozConnection || environment?.webkitConnection;
+        if (connection?.saveData === true) {
+          return CANVAS_QUALITY_PROFILES.low;
+        }
+
+        return CANVAS_QUALITY_PROFILES.high;
+      }
+
+      function applyQualityProfile(profile) {
+        const nextProfile = typeof profile === "string" ? CANVAS_QUALITY_PROFILES[profile] : profile;
+        if (!nextProfile) {
+          return state.qualityProfile;
+        }
+
+        state.qualityProfile = nextProfile;
+        state.qualityProfileName = nextProfile.name;
+        state.gridSize = nextProfile.gridSize;
+        state.dprCap = nextProfile.dprCap;
+        state.frameInterval = 1000 / nextProfile.fps;
+        state.slowFrameCount = 0;
+        return nextProfile;
+      }
+
+      function degradeQualityProfile() {
+        const currentIndex = CANVAS_QUALITY_ORDER.indexOf(state.qualityProfileName);
+        if (currentIndex < 0 || currentIndex >= CANVAS_QUALITY_ORDER.length - 1) {
+          return false;
+        }
+
+        applyQualityProfile(CANVAS_QUALITY_ORDER[currentIndex + 1]);
+        resizeCanvas({ force: true });
+        return true;
+      }
+
+      function recordFramePerformance(duration) {
+        if (!Number.isFinite(duration) || duration <= state.frameInterval * SLOW_FRAME_FACTOR) {
+          state.slowFrameCount = 0;
+          return false;
+        }
+
+        state.slowFrameCount += 1;
+        if (state.slowFrameCount < SLOW_FRAME_LIMIT) {
+          return false;
+        }
+
+        return degradeQualityProfile();
+      }
+
+      function shouldRenderFrame(time) {
+        return state.lastFrame === 0 || time - state.lastFrame >= state.frameInterval;
+      }
+
+      function createFlowNodes(count, buildNode) {
+        const nodes = [];
+
+        for (let index = 0; index < count; index += 1) {
+          nodes.push(buildNode(index, count));
+        }
+
+        return nodes;
+      }
+
+      function createFlowFieldConfig(randomValue = Math.random) {
+        const vortexCount = randomIntBetween(FLOW_NODE_COUNT_RANGE.min, FLOW_NODE_COUNT_RANGE.max, randomValue);
+        const emitterCount = randomIntBetween(FLOW_NODE_COUNT_RANGE.min, FLOW_NODE_COUNT_RANGE.max, randomValue);
+
+        return {
+          vortices: createFlowNodes(vortexCount, (index, count) => {
+            const anchorX = clamp(
+              lerp(0.22, 0.78, (index + 1) / (count + 1)) + randomBetween(-0.08, 0.08, randomValue),
+              0.14,
+              0.86
+            );
+
+            return {
+              anchorX,
+              anchorY: randomBetween(0.24, 0.76, randomValue),
+              orbitAmplitudeX: randomBetween(0.04, 0.12, randomValue),
+              orbitAmplitudeY: randomBetween(0.05, 0.14, randomValue),
+              orbitSpeedX: randomBetween(0.7, 1.35, randomValue),
+              orbitSpeedY: randomBetween(0.7, 1.35, randomValue),
+              phaseX: randomBetween(0, Math.PI * 2, randomValue),
+              phaseY: randomBetween(0, Math.PI * 2, randomValue),
+              radius: randomBetween(VORTEX_RADIUS_RANGE.min, VORTEX_RADIUS_RANGE.max, randomValue),
+              strength: (index % 2 === 0 ? 1 : -1) * randomBetween(2.1, 3.1, randomValue)
+            };
+          }),
+          emitters: createFlowNodes(emitterCount, (index, count) => {
+            const anchorX = clamp(
+              lerp(0.2, 0.8, (index + 1) / (count + 1)) + randomBetween(-0.1, 0.1, randomValue),
+              0.12,
+              0.88
+            );
+
+            return {
+              anchorX,
+              anchorY: randomBetween(0.28, 0.72, randomValue),
+              orbitAmplitudeX: randomBetween(0.05, 0.14, randomValue),
+              orbitAmplitudeY: randomBetween(0.05, 0.15, randomValue),
+              orbitSpeedX: randomBetween(0.75, 1.3, randomValue),
+              orbitSpeedY: randomBetween(0.75, 1.3, randomValue),
+              phaseX: randomBetween(0, Math.PI * 2, randomValue),
+              phaseY: randomBetween(0, Math.PI * 2, randomValue),
+              spread: randomBetween(EMITTER_SPREAD_RANGE.min, EMITTER_SPREAD_RANGE.max, randomValue),
+              intensity: randomBetween(0.055, 0.09, randomValue)
+            };
+          })
+        };
+      }
+
+      function createStableFlowFieldConfig(seed = FLOW_FIELD_SEED) {
+        return createFlowFieldConfig(createSeededRandom(seed));
+      }
+
+      function perlin2d(x, y) {
+        const xi = Math.floor(x) & 255;
+        const yi = Math.floor(y) & 255;
+        const xf = x - Math.floor(x);
+        const yf = y - Math.floor(y);
+        const u = fade(xf);
+        const v = fade(yf);
+        const aa = FLOW_TABLE[FLOW_TABLE[xi] + yi];
+        const ab = FLOW_TABLE[FLOW_TABLE[xi] + yi + 1];
+        const ba = FLOW_TABLE[FLOW_TABLE[xi + 1] + yi];
+        const bb = FLOW_TABLE[FLOW_TABLE[xi + 1] + yi + 1];
+        const x1 = lerp(grad(aa, xf, yf), grad(ba, xf - 1, yf), u);
+        const x2 = lerp(grad(ab, xf, yf - 1), grad(bb, xf - 1, yf - 1), u);
+        return lerp(x1, x2, v);
+      }
+
+      function smoothstep(edge0, edge1, value) {
+        const normalized = clamp((value - edge0) / (edge1 - edge0), 0, 1);
+        return normalized * normalized * (3 - 2 * normalized);
+      }
+
+      function fieldIndex(x, y) {
+        return y * state.fieldColumns + x;
+      }
+
+      function bilinearSample(field, x, y) {
+        const maxX = state.fieldColumns - 1;
+        const maxY = state.fieldRows - 1;
+        const sampleX = x < 0 ? 0 : x > maxX ? maxX : x;
+        const sampleY = y < 0 ? 0 : y > maxY ? maxY : y;
+        const x0 = Math.floor(sampleX);
+        const y0 = Math.floor(sampleY);
+        const x1 = Math.min(x0 + 1, maxX);
+        const y1 = Math.min(y0 + 1, maxY);
+        const tx = sampleX - x0;
+        const ty = sampleY - y0;
+        const rowOffset0 = y0 * state.fieldColumns;
+        const rowOffset1 = y1 * state.fieldColumns;
+        const top = lerp(field[rowOffset0 + x0], field[rowOffset0 + x1], tx);
+        const bottom = lerp(field[rowOffset1 + x0], field[rowOffset1 + x1], tx);
+        return lerp(top, bottom, ty);
+      }
+
+      function resolveOrbitPosition(node, orbit, width, height) {
+        return {
+          x: width * (node.anchorX + Math.cos(orbit * node.orbitSpeedX + node.phaseX) * node.orbitAmplitudeX),
+          y: height * (node.anchorY + Math.sin(orbit * node.orbitSpeedY + node.phaseY) * node.orbitAmplitudeY)
+        };
+      }
+
+      function resolveFrameNodes(time) {
+        const vortexOrbit = time * 0.00022;
+        const emitterOrbit = time * 0.00028;
+
+        return {
+          vortices: state.flowFieldConfig.vortices.map((vortex) => {
+            const center = resolveOrbitPosition(vortex, vortexOrbit, state.fieldColumns, state.fieldRows);
+            const radiusSquared = vortex.radius * vortex.radius;
+            return {
+              x: center.x,
+              y: center.y,
+              radiusSquared,
+              inverseRadiusSquared: 1 / radiusSquared,
+              cutoffDistanceSquared: radiusSquared * 9,
+              strength: vortex.strength
+            };
+          }),
+          emitters: state.flowFieldConfig.emitters.map((emitter) => {
+            const center = resolveOrbitPosition(emitter, emitterOrbit, state.fieldColumns, state.fieldRows);
+            const inverseSpread = 1 / emitter.spread;
+            return {
+              x: center.x,
+              y: center.y,
+              inverseSpread,
+              cutoffDistanceSquared: 9 / inverseSpread,
+              intensity: emitter.intensity
+            };
+          })
+        };
+      }
+
+      function fluidVelocityAt(x, y, time, frameNodes = resolveFrameNodes(time)) {
+        const driftX = Math.sin(time * 0.00018 + y * 0.08) * 0.35;
+        const driftY = Math.cos(time * 0.00016 + x * 0.07) * 0.3;
+        let totalVx = driftX;
+        let totalVy = driftY;
+
+        for (const vortex of frameNodes.vortices) {
+          const dx = x - vortex.x;
+          const dy = y - vortex.y;
+          const distanceSquared = dx * dx + dy * dy + 0.0001;
+          if (distanceSquared > vortex.cutoffDistanceSquared) {
+            continue;
+          }
+
+          const influence = vortex.strength * Math.exp(-(distanceSquared * vortex.inverseRadiusSquared)) / Math.sqrt(distanceSquared);
+          totalVx += -dy * influence;
+          totalVy += dx * influence;
+        }
+
+        return {
+          vx: totalVx,
+          vy: totalVy
+        };
+      }
+
+      function emitterDensityAt(x, y, time, frameNodes = resolveFrameNodes(time)) {
+        let density = 0;
+
+        for (const emitter of frameNodes.emitters) {
+          const dx = x - emitter.x;
+          const dy = y - emitter.y;
+          const distanceSquared = dx * dx + dy * dy;
+          if (distanceSquared > emitter.cutoffDistanceSquared) {
+            continue;
+          }
+
+          const blob = Math.exp(-(distanceSquared * emitter.inverseSpread)) * emitter.intensity;
+          density = Math.max(density, blob);
+        }
+
+        return density;
+      }
+
+      function seedDensityField() {
+        const size = state.fieldColumns * state.fieldRows;
+        state.densityField = new Float32Array(size);
+        state.nextDensityField = new Float32Array(size);
+
+        for (let y = 0; y < state.fieldRows; y += 1) {
+          for (let x = 0; x < state.fieldColumns; x += 1) {
+            const wave =
+              Math.sin(x * 0.11) * 0.06 +
+              Math.cos(y * 0.09) * 0.05 +
+              Math.sin((x + y) * 0.04) * 0.04;
+            const base = clamp(0.16 + wave, 0, 1);
+            state.densityField[fieldIndex(x, y)] = base;
+          }
+        }
+      }
+
+      function initializeGridGeometry() {
+        state.dotPositionsX = new Uint16Array(state.fieldColumns * state.fieldRows);
+        state.dotPositionsY = new Uint16Array(state.fieldColumns * state.fieldRows);
+        state.rowDriftX = new Float32Array(state.fieldRows);
+        state.columnDriftY = new Float32Array(state.fieldColumns);
+
+        const cell = state.gridSize;
+        const offset = cell * 0.5;
+
+        for (let row = 0; row < state.fieldRows; row += 1) {
+          for (let col = 0; col < state.fieldColumns; col += 1) {
+            const index = fieldIndex(col, row);
+            state.dotPositionsX[index] = Math.round(col * cell + offset);
+            state.dotPositionsY[index] = Math.round(row * cell + offset);
+          }
+        }
+      }
+
+      function populateDriftTables(time) {
+        for (let row = 0; row < state.fieldRows; row += 1) {
+          state.rowDriftX[row] = Math.sin(time * 0.00018 + row * 0.08) * 0.35;
+        }
+
+        for (let column = 0; column < state.fieldColumns; column += 1) {
+          state.columnDriftY[column] = Math.cos(time * 0.00016 + column * 0.07) * 0.3;
+        }
+      }
+
+      function stepFluidField(time, dt, frameNodes) {
+        const scaledDt = Math.min(dt, 0.033) * 60;
+        const columns = state.fieldColumns;
+        const rows = state.fieldRows;
+        const currentField = state.densityField;
+        const nextField = state.nextDensityField;
+        const vortices = frameNodes.vortices;
+        const emitters = frameNodes.emitters;
+        const maxX = columns - 1;
+        const maxY = rows - 1;
+
+        populateDriftTables(time);
+
+        for (let y = 0; y < rows; y += 1) {
+          const rowOffset = y * columns;
+          const upOffset = (y === 0 ? 0 : y - 1) * columns;
+          const downOffset = (y === rows - 1 ? rows - 1 : y + 1) * columns;
+          const baseVx = state.rowDriftX[y];
+
+          for (let x = 0; x < columns; x += 1) {
+            const idx = rowOffset + x;
+            const leftIndex = rowOffset + (x === 0 ? 0 : x - 1);
+            const rightIndex = rowOffset + (x === columns - 1 ? columns - 1 : x + 1);
+            const upIndex = upOffset + x;
+            const downIndex = downOffset + x;
+            let totalVx = baseVx;
+            let totalVy = state.columnDriftY[x];
+
+            for (let vortexIndex = 0; vortexIndex < vortices.length; vortexIndex += 1) {
+              const vortex = vortices[vortexIndex];
+              const dx = x - vortex.x;
+              const dy = y - vortex.y;
+              const distanceSquared = dx * dx + dy * dy + 0.0001;
+              if (distanceSquared > vortex.cutoffDistanceSquared) {
+                continue;
+              }
+
+              const influence = vortex.strength * Math.exp(-(distanceSquared * vortex.inverseRadiusSquared)) / Math.sqrt(distanceSquared);
+              totalVx += -dy * influence;
+              totalVy += dx * influence;
+            }
+
+            const sourceX = x - totalVx * scaledDt;
+            const sourceY = y - totalVy * scaledDt;
+            const sampleX = sourceX < 0 ? 0 : sourceX > maxX ? maxX : sourceX;
+            const sampleY = sourceY < 0 ? 0 : sourceY > maxY ? maxY : sourceY;
+            const x0 = Math.floor(sampleX);
+            const y0 = Math.floor(sampleY);
+            const x1 = x0 === maxX ? maxX : x0 + 1;
+            const y1 = y0 === maxY ? maxY : y0 + 1;
+            const tx = sampleX - x0;
+            const ty = sampleY - y0;
+            const sampleRowOffset0 = y0 * columns;
+            const sampleRowOffset1 = y1 * columns;
+            const top = lerp(currentField[sampleRowOffset0 + x0], currentField[sampleRowOffset0 + x1], tx);
+            const bottom = lerp(currentField[sampleRowOffset1 + x0], currentField[sampleRowOffset1 + x1], tx);
+            const advected = lerp(top, bottom, ty);
+            const left = currentField[leftIndex];
+            const right = currentField[rightIndex];
+            const up = currentField[upIndex];
+            const down = currentField[downIndex];
+            const neighborhood = (left + right + up + down) * 0.25;
+            let injected = 0;
+
+            for (let emitterIndex = 0; emitterIndex < emitters.length; emitterIndex += 1) {
+              const emitter = emitters[emitterIndex];
+              const dx = x - emitter.x;
+              const dy = y - emitter.y;
+              const distanceSquared = dx * dx + dy * dy;
+              if (distanceSquared > emitter.cutoffDistanceSquared) {
+                continue;
+              }
+
+              const density = Math.exp(-(distanceSquared * emitter.inverseSpread)) * emitter.intensity;
+              if (density > injected) {
+                injected = density;
+              }
+            }
+
+            const blended = advected * 0.82 + neighborhood * 0.14 + injected;
+            nextField[idx] = clamp(blended * FLOW_FIELD_FADE, 0, 1);
+          }
+        }
+
+        state.densityField = nextField;
+        state.nextDensityField = currentField;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      const LINK_ICON_SVGS = Object.freeze({
+        github:
+          '<svg viewBox="0 0 16 16" role="img" aria-label="GitHub icon"><path d="M8 0C3.58 0 0 3.67 0 8.2c0 3.62 2.29 6.69 5.47 7.77.4.08.55-.18.55-.39 0-.19-.01-.83-.01-1.5-2.01.38-2.53-.51-2.69-.99-.09-.25-.47-.99-.8-1.19-.27-.15-.65-.54-.01-.55.61-.01 1.05.57 1.19.81.69 1.18 1.79.85 2.23.65.07-.52.27-.85.49-1.05-1.78-.21-3.64-.92-3.64-4.08 0-.9.31-1.64.82-2.22-.08-.2-.36-1.03.08-2.14 0 0 .67-.22 2.2.85A7.36 7.36 0 0 1 8 4.87c.65 0 1.31.09 1.92.27 1.53-1.07 2.2-.85 2.2-.85.44 1.11.16 1.94.08 2.14.51.58.82 1.31.82 2.22 0 3.17-1.87 3.87-3.65 4.08.28.25.53.74.53 1.5 0 1.08-.01 1.95-.01 2.22 0 .22.15.48.55.39A8.2 8.2 0 0 0 16 8.2C16 3.67 12.42 0 8 0Z"></path></svg>',
+        x:
+          '<svg viewBox="0 0 16 16" role="img" aria-label="X (Formally Twitter) icon"><path d="M9.52 6.78 15.46 0h-1.41L8.9 5.88 4.78 0H0l6.23 8.89L0 16h1.41l5.45-6.22L11.22 16H16L9.52 6.78Zm-1.95 2.23-.63-.88L1.9 1.1h2.18l4.06 5.68.63.88 5.28 7.39H11.87L7.57 9.01Z"></path></svg>',
+        general:
+          '<svg viewBox="0 0 16 16" role="img" aria-label="General link icon"><path d="M4.5 1.75A1.75 1.75 0 0 0 2.75 3.5v10.75l5.25-2.76 5.25 2.76V3.5A1.75 1.75 0 0 0 11.5 1.75Zm0 1.5h7c.14 0 .25.11.25.25v8.28L8 9.82l-3.75 1.96V3.5c0-.14.11-.25.25-.25Z"></path></svg>',
+        soundcloud:
+          '<svg viewBox="0 0 16 16" role="img" aria-label="SoundCloud icon"><path d="M6.2 5.3a4.27 4.27 0 0 1 4.15 3.1h.68A2.97 2.97 0 1 1 11.1 14H2.45A2.45 2.45 0 0 1 2 9.14V8.8a1.6 1.6 0 0 1 1.92-1.57A2.98 2.98 0 0 1 6.2 5.3ZM1.75 8.67h.87V14h-.87Zm1.3-.82h.87V14h-.87Zm1.3-.5h.87V14h-.87Zm1.3-.15h.87V14h-.87Z"></path></svg>'
+      });
+
+      const GENERAL_LINK_SERVICES = new Set(["hatena-blog", "note", "sizu-me", "zenn", "qiita"]);
+
+      function getLinkIconSvg(service) {
+        const iconKey = GENERAL_LINK_SERVICES.has(service) ? "general" : service;
+        const iconSvg = LINK_ICON_SVGS[iconKey];
+        if (!iconSvg) {
+          throw new Error("Unknown link service: " + service);
+        }
+
+        return iconSvg;
+      }
+
       function buildLinkMarkup(links) {
         return links
-          .filter((link) => link.url)
+          .filter((link) => link.url.trim() !== "")
           .map((link) => {
+            const label = escapeHtml(link.label);
+            const url = escapeHtml(link.url);
+            const iconSvg = getLinkIconSvg(link.service);
+
             return [
-              `<a class="link-chip" href="${link.url}" target="_blank" rel="noopener noreferrer">`,
-              '<span class="link-marker" aria-hidden="true"></span>',
-              `<span class="link-label">${link.label}</span>`,
+              '<a class="link-chip" href="',
+              url,
+              '" target="_blank" rel="noreferrer noopener">',
+              '<span class="link-icon">',
+              iconSvg,
+              "</span>",
+              '<span class="link-label">',
+              label,
+              "</span>",
               "</a>"
             ].join("");
           })
@@ -359,249 +1049,699 @@
         document.getElementById("profile-links").innerHTML = buildLinkMarkup(profile.links);
       }
 
-      function applyTheme(theme) {
-        const nextTheme = theme === "light" ? "light" : "dark";
-        const colors = THEME_COLORS[nextTheme];
-        state.theme = nextTheme;
-        document.documentElement.dataset.theme = nextTheme;
-        document.documentElement.style.setProperty("--dot", colors.fallbackDot);
-        themeToggle.textContent = nextTheme === "dark" ? "Light" : "Dark";
-        themeToggle.setAttribute("aria-pressed", String(nextTheme === "dark"));
-        drawBackground(state.frame * FRAME_INTERVAL);
+      function getSystemTheme() {
+        return systemThemeQuery.matches ? "dark" : "light";
       }
 
-      function toggleTheme() {
-        const nextTheme = state.theme === "dark" ? "light" : "dark";
-        localStorage.setItem(THEME_KEY, nextTheme);
-        applyTheme(nextTheme);
+      function resolveTheme(preference) {
+        return preference === "system" ? getSystemTheme() : preference;
       }
 
-      function resizeCanvas() {
-        if (!canvas || !context) {
-          return false;
+      function readThemePreference() {
+        const stored = localStorage.getItem(THEME_KEY);
+        if (stored === "light" || stored === "dark" || stored === "system") {
+          return stored;
         }
 
-        state.width = window.innerWidth;
-        state.height = window.innerHeight;
-        state.dpr = window.devicePixelRatio >= 2 ? 2 : 1;
-        canvas.width = state.width * state.dpr;
-        canvas.height = state.height * state.dpr;
-        canvas.style.width = state.width + "px";
-        canvas.style.height = state.height + "px";
-        context.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
-        context.imageSmoothingEnabled = false;
-        state.fieldColumns = Math.ceil(state.width / GRID_SIZE) + 1;
-        state.fieldRows = Math.ceil(state.height / GRID_SIZE) + 1;
-        initializeGrid();
-        seedDensityField();
-        drawBackground(state.frame * FRAME_INTERVAL);
-        return true;
+        return "system";
       }
 
-      function fieldIndex(x, y) {
-        return y * state.fieldColumns + x;
+      function syncPalette() {
+        const styles = getComputedStyle(document.documentElement);
+        state.palette = {
+          bg: styles.getPropertyValue("--bg-rgb").trim(),
+          fg: styles.getPropertyValue("--fg-rgb").trim(),
+          noise: styles.getPropertyValue("--noise-rgb").trim()
+        };
+        state.paletteRgb = {
+          bg: parseRgbTriplet(state.palette.bg),
+          fg: parseRgbTriplet(state.palette.fg),
+          noise: parseRgbTriplet(state.palette.noise)
+        };
       }
 
-      function initializeGrid() {
-        const size = state.fieldColumns * state.fieldRows;
-        state.dotPositionsX = new Uint16Array(size);
-        state.dotPositionsY = new Uint16Array(size);
-
-        for (let y = 0; y < state.fieldRows; y += 1) {
-          for (let x = 0; x < state.fieldColumns; x += 1) {
-            const index = fieldIndex(x, y);
-            state.dotPositionsX[index] = x * GRID_SIZE + Math.floor(GRID_SIZE / 2);
-            state.dotPositionsY[index] = y * GRID_SIZE + Math.floor(GRID_SIZE / 2);
-          }
-        }
-      }
-
-      function seedDensityField() {
-        const size = state.fieldColumns * state.fieldRows;
-        state.densityField = new Float32Array(size);
-        state.nextDensityField = new Float32Array(size);
-
-        for (let y = 0; y < state.fieldRows; y += 1) {
-          for (let x = 0; x < state.fieldColumns; x += 1) {
-            state.densityField[fieldIndex(x, y)] = baseDensityAt(x, y, 0);
-          }
-        }
-      }
-
-      function baseDensityAt(x, y, time) {
-        const slowTime = Math.floor(time / 90);
-        const a = Math.sin((x * 7 + y * 3 + slowTime) / 17);
-        const b = Math.cos((x * 5 - y * 9 + slowTime * 2) / 23);
-        const c = Math.sin((x + y + slowTime * 3) / 19);
-        return a + b + c;
-      }
-
-      function nodePosition(node, time) {
-        const t = time / 1000;
-        const x =
-          (state.fieldColumns * node.x) / 100 +
-          Math.sin(t * node.speedX / 10 + node.phase) * Math.floor(state.fieldColumns / 8);
-        const y =
-          (state.fieldRows * node.y) / 100 +
-          Math.cos(t * node.speedY / 10 + node.phase) * Math.floor(state.fieldRows / 8);
-        return { x, y };
-      }
-
-      function flowAt(x, y, time) {
-        let vx = Math.sin((y + time / 180) / 9) * 0.7;
-        let vy = Math.cos((x - time / 210) / 9) * 0.7;
-        let density = baseDensityAt(x, y, time);
-
-        for (let index = 0; index < FLOW_NODES.length; index += 1) {
-          const node = FLOW_NODES[index];
-          const point = nodePosition(node, time);
-          const dx = x - point.x;
-          const dy = y - point.y;
-          const distanceSquared = dx * dx + dy * dy + 1;
-          const radius = Math.max(8, Math.floor(node.radius / GRID_SIZE));
-          const radiusSquared = radius * radius;
-
-          if (distanceSquared > radiusSquared) {
-            continue;
-          }
-
-          const influence = Math.floor((radiusSquared - distanceSquared) / radiusSquared * 100) / 100;
-          const swirl = node.strength * influence / Math.sqrt(distanceSquared);
-          vx += -dy * swirl / 80;
-          vy += dx * swirl / 80;
-          density += influence * (node.strength > 0 ? 3 : 2);
-        }
-
-        return { vx, vy, density };
-      }
-
-      function sampleDensity(x, y) {
-        const sampleX = Math.max(0, Math.min(state.fieldColumns - 1, Math.round(x)));
-        const sampleY = Math.max(0, Math.min(state.fieldRows - 1, Math.round(y)));
-        return state.densityField[fieldIndex(sampleX, sampleY)];
-      }
-
-      function stepDensityField(time) {
-        for (let y = 0; y < state.fieldRows; y += 1) {
-          for (let x = 0; x < state.fieldColumns; x += 1) {
-            const index = fieldIndex(x, y);
-            const flow = flowAt(x, y, time);
-            const advected = sampleDensity(x - flow.vx, y - flow.vy);
-            const injected = flow.density > 2 ? 0.28 : 0;
-            const nextValue = advected * FIELD_FADE + baseDensityAt(x, y, time) * 0.05 + injected;
-            state.nextDensityField[index] = Math.max(-3, Math.min(6, nextValue));
-          }
-        }
-
-        const previous = state.densityField;
-        state.densityField = state.nextDensityField;
-        state.nextDensityField = previous;
-      }
-
-      function paletteIndex(value, maxIndex) {
-        if (value < -2) {
-          return 1;
-        }
-        if (value < 0) {
-          return 2;
-        }
-        if (value < 2) {
-          return 3;
-        }
-        if (value < 4) {
-          return 4;
-        }
-        return maxIndex;
-      }
-
-      function drawBackground(time) {
+      function drawStaticBackdrop() {
+        const context = state.ctx;
         if (!context) {
           return false;
         }
 
-        const colors = THEME_COLORS[state.theme];
-        context.fillStyle = colors.bg;
+        context.clearRect(0, 0, state.width, state.height);
+        context.fillStyle = formatCanvasRgb(state.paletteRgb.bg);
         context.fillRect(0, 0, state.width, state.height);
+        drawGridBackdrop();
+        return true;
+      }
 
-        const palette = colors.palette;
-        const maxIndex = palette.length - 1;
+      function applyTheme(preference) {
+        state.themePreference = preference;
+        state.resolvedTheme = resolveTheme(preference);
+        document.documentElement.dataset.theme = state.resolvedTheme;
+        themeToggle.setAttribute("aria-pressed", String(state.resolvedTheme === "dark"));
+        themeToggle.textContent = state.resolvedTheme === "dark" ? "Light" : "Dark";
+        syncPalette();
+
+        if (state.initialized) {
+          if (!state.running || reducedMotionQuery.matches) {
+            drawStaticBackdrop();
+          }
+        }
+      }
+
+      function initializeTheme(preference = readThemePreference()) {
+        applyTheme(preference);
+        return {
+          preference,
+          resolved: state.resolvedTheme
+        };
+      }
+
+      function toggleTheme() {
+        const nextTheme = state.resolvedTheme === "dark" ? "light" : "dark";
+        localStorage.setItem(THEME_KEY, nextTheme);
+        applyTheme(nextTheme);
+      }
+
+      function drawGridBackdrop() {
+        const context = state.ctx;
+        if (!context) {
+          return 0;
+        }
+
+        const maxAlpha = state.resolvedTheme === "dark" ? 0.46 : 0.34;
+        let currentBucket = 0;
         let drawnDots = 0;
-        stepDensityField(time);
-
+        context.fillStyle = formatCanvasRgb(state.paletteRgb.fg);
         for (let index = 0; index < state.densityField.length; index += 1) {
-          const bucket = paletteIndex(state.densityField[index], maxIndex);
-
-          if (bucket === 0) {
+          const fillAlpha = smoothstep(0.08, 0.92, state.densityField[index]) * maxAlpha;
+          if (fillAlpha <= 0.004) {
             continue;
           }
 
-          const size = bucket >= 4 ? DOT_SIZE + 1 : DOT_SIZE;
-          context.fillStyle = palette[bucket];
-          context.fillRect(state.dotPositionsX[index], state.dotPositionsY[index], size, size);
+          const alphaBucket = Math.ceil((fillAlpha / maxAlpha) * ALPHA_BUCKET_COUNT);
+          if (alphaBucket !== currentBucket) {
+            context.globalAlpha = (alphaBucket / ALPHA_BUCKET_COUNT) * maxAlpha;
+            currentBucket = alphaBucket;
+          }
+
+          context.fillRect(state.dotPositionsX[index], state.dotPositionsY[index], 1, 1);
           drawnDots += 1;
         }
-
+        context.globalAlpha = 1;
         return drawnDots;
       }
 
-      function animate(time) {
-        if (time - state.lastFrame >= FRAME_INTERVAL) {
-          state.frame += 1;
-          state.lastFrame = time;
-          drawBackground(time);
-        }
-
-        state.rafId = window.requestAnimationFrame(animate);
+      function resolveCanvasDpr(rawDpr, cap) {
+        const nextRawDpr = Number.isFinite(rawDpr) && rawDpr > 0 ? rawDpr : 1;
+        const nextCap = Number.isFinite(cap) && cap > 0 ? cap : 1;
+        const bucket = nextRawDpr >= 2 && nextCap >= 2 ? 2 : 1;
+        return Math.min(bucket, Math.floor(nextCap));
       }
 
-      function startAnimation() {
-        if (!context || state.running) {
+      function resizeCanvas(options = {}) {
+        const targetCanvas = state.canvas;
+        const context = state.ctx;
+        if (!targetCanvas || !context) {
           return false;
         }
 
-        state.running = true;
-        state.rafId = window.requestAnimationFrame(animate);
+        const force = options.force === true;
+        const nextWidth = window.innerWidth;
+        const nextHeight = window.innerHeight;
+        const nextDpr = resolveCanvasDpr(window.devicePixelRatio || 1, state.dprCap);
+        if (
+          !force &&
+          state.width === nextWidth &&
+          state.height === nextHeight &&
+          state.dpr === nextDpr &&
+          state.densityField.length > 0
+        ) {
+          return false;
+        }
+
+        state.dpr = nextDpr;
+        state.width = nextWidth;
+        state.height = nextHeight;
+        targetCanvas.width = Math.round(state.width * state.dpr);
+        targetCanvas.height = Math.round(state.height * state.dpr);
+        targetCanvas.style.width = state.width + "px";
+        targetCanvas.style.height = state.height + "px";
+        context.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+        context.imageSmoothingEnabled = false;
+        context.clearRect(0, 0, state.width, state.height);
+        state.fieldColumns = Math.ceil(state.width / state.gridSize) + 1;
+        state.fieldRows = Math.ceil(state.height / state.gridSize) + 1;
+        state.flowFieldConfig = createStableFlowFieldConfig();
+        state.frameNodes = resolveFrameNodes(0);
+        initializeGridGeometry();
+        seedDensityField();
+        if (!state.running || reducedMotionQuery.matches) {
+          drawStaticBackdrop();
+        }
         return true;
+      }
+
+      function scheduleCanvasResize() {
+        if (!state.canvas || !state.ctx || state.resizeRafId !== 0) {
+          return false;
+        }
+
+        state.resizeRafId = window.requestAnimationFrame(() => {
+          state.resizeRafId = 0;
+          resizeCanvas();
+        });
+        return true;
+      }
+
+      function paintFrame(time) {
+        const context = state.ctx;
+        if (!context) {
+          return false;
+        }
+
+        if (!shouldRenderFrame(time)) {
+          if (state.running) {
+            state.rafId = window.requestAnimationFrame(paintFrame);
+          }
+          return false;
+        }
+
+        const performanceStart = typeof performance !== "undefined" ? performance.now() : time;
+        const dt = state.lastFrame === 0 ? 0.016 : Math.min((time - state.lastFrame) / 1000, 0.033);
+        state.lastFrame = time;
+        state.frameNodes = resolveFrameNodes(time);
+        stepFluidField(time, dt, state.frameNodes);
+
+        context.fillStyle = formatCanvasRgba(state.paletteRgb.bg, CANVAS_TRAIL_ALPHA);
+        context.fillRect(0, 0, state.width, state.height);
+        drawGridBackdrop();
+        recordFramePerformance((typeof performance !== "undefined" ? performance.now() : time) - performanceStart);
+
+        if (state.running) {
+          state.rafId = window.requestAnimationFrame(paintFrame);
+        }
+        return true;
+      }
+
+      function startAnimation() {
+        if (!state.ctx) {
+          return false;
+        }
+
+        if (reducedMotionQuery.matches) {
+          drawStaticBackdrop();
+          return false;
+        }
+
+        if (state.running) {
+          drawStaticBackdrop();
+          return true;
+        }
+
+        state.running = true;
+        state.lastFrame = 0;
+        state.rafId = window.requestAnimationFrame(paintFrame);
+        return true;
+      }
+
+      function stopAnimation() {
+        state.running = false;
+        window.cancelAnimationFrame(state.rafId);
+        state.rafId = 0;
+      }
+
+      function handleVisibilityChange() {
+        if (document.hidden) {
+          stopAnimation();
+          return;
+        }
+
+        startAnimation();
+      }
+
+      function withTemporaryState(overrides, callback) {
+        const entries = Object.entries(overrides);
+        const previous = entries.map(([key]) => [key, state[key]]);
+
+        for (const [key, value] of entries) {
+          state[key] = value;
+        }
+
+        try {
+          return callback();
+        } finally {
+          for (const [key, value] of previous) {
+            state[key] = value;
+          }
+        }
       }
 
       function runTests() {
         const cases = [
           {
-            name: "profile renders links",
+            name: "renderProfile renders only the remaining profile fields",
             test() {
-              return document.querySelectorAll(".link-chip").length === profile.links.length;
+              const previousName = profile.name;
+              const previousLinks = profile.links;
+              profile.name = "Test Profile";
+              profile.links = [
+                { service: "github", label: "Docs", url: "https://example.com/docs" },
+                { service: "x", label: "Skip", url: "" }
+              ];
+
+              renderProfile();
+
+              const linksMarkup = document.getElementById("profile-links").innerHTML;
+              const iconIndex = linksMarkup.indexOf('class="link-icon"');
+              const labelIndex = linksMarkup.indexOf('class="link-label"');
+              const profileName = document.getElementById("profile-name");
+              const result =
+                profileName.textContent === "Test Profile" &&
+                profileName.parentElement?.classList.contains("page-header") === true &&
+                linksMarkup.includes("example.com/docs") &&
+                !linksMarkup.includes("Skip") &&
+                iconIndex !== -1 &&
+                labelIndex !== -1 &&
+                iconIndex < labelIndex;
+
+              profile.name = previousName;
+              profile.links = previousLinks;
+              renderProfile();
+              return result;
             }
           },
           {
-            name: "canvas uses opaque palette colors",
+            name: "perlin2d is deterministic",
             test() {
-              if (!context) {
+              return perlin2d(3.25, 7.5) === perlin2d(3.25, 7.5);
+            }
+          },
+          {
+            name: "perlin2d stays within expected range",
+            test() {
+              const value = perlin2d(4.5, 8.75);
+              return value >= -1.2 && value <= 1.2;
+            }
+          },
+          {
+            name: "fluidVelocityAt returns finite values",
+            test() {
+              return withTemporaryState(
+                {
+                  fieldColumns: 24,
+                  fieldRows: 16,
+                  flowFieldConfig: createFlowFieldConfig(() => 0.5)
+                },
+                () => {
+                  const velocity = fluidVelocityAt(8, 6, 1000);
+                  return Number.isFinite(velocity.vx) && Number.isFinite(velocity.vy);
+                }
+              );
+            }
+          },
+          {
+            name: "createFlowFieldConfig randomizes count and size within bounds",
+            test() {
+              const values = [0.1, 0.7, 0.3, 0.8, 0.4, 0.6, 0.2, 0.9, 0.5];
+              let index = 0;
+              const config = createFlowFieldConfig(() => {
+                const value = values[index % values.length];
+                index += 1;
+                return value;
+              });
+
+              return (
+                config.vortices.length >= FLOW_NODE_COUNT_RANGE.min &&
+                config.vortices.length <= FLOW_NODE_COUNT_RANGE.max &&
+                config.emitters.length >= FLOW_NODE_COUNT_RANGE.min &&
+                config.emitters.length <= FLOW_NODE_COUNT_RANGE.max &&
+                config.vortices.every((vortex) =>
+                  vortex.radius >= VORTEX_RADIUS_RANGE.min &&
+                  vortex.radius <= VORTEX_RADIUS_RANGE.max &&
+                  Number.isFinite(vortex.strength)
+                ) &&
+                config.emitters.every((emitter) =>
+                  emitter.spread >= EMITTER_SPREAD_RANGE.min &&
+                  emitter.spread <= EMITTER_SPREAD_RANGE.max &&
+                  emitter.intensity >= 0.055 &&
+                  emitter.intensity <= 0.09
+                )
+              );
+            }
+          },
+          {
+            name: "emitterDensityAt returns finite density",
+            test() {
+              return withTemporaryState(
+                {
+                  fieldColumns: 24,
+                  fieldRows: 16,
+                  flowFieldConfig: createFlowFieldConfig(() => 0.35)
+                },
+                () => {
+                  const density = emitterDensityAt(8, 6, 1000);
+                  return Number.isFinite(density) && density >= 0;
+                }
+              );
+            }
+          },
+          {
+            name: "bilinearSample returns finite values",
+            test() {
+              return withTemporaryState(
+                {
+                  fieldColumns: 2,
+                  fieldRows: 2,
+                  densityField: new Float32Array([0, 1, 1, 0])
+                },
+                () => Number.isFinite(bilinearSample(state.densityField, 0.5, 0.5))
+              );
+            }
+          },
+          {
+            name: "buildLinkMarkup omits empty urls",
+            test() {
+              const markup = buildLinkMarkup([
+                { service: "github", label: "One", url: "https://example.com" },
+                { service: "x", label: "Skip", url: "" }
+              ]);
+              return markup.includes("example.com") && !markup.includes("Skip");
+            }
+          },
+          {
+            name: "buildLinkMarkup renders service svg before label",
+            test() {
+              const markup = buildLinkMarkup([
+                { service: "github", label: "One", url: "https://example.com" }
+              ]);
+              const iconIndex = markup.indexOf('class="link-icon"');
+              const labelIndex = markup.indexOf('class="link-label"');
+              return (
+                markup.includes('aria-label="GitHub icon"') &&
+                iconIndex !== -1 &&
+                labelIndex !== -1 &&
+                iconIndex < labelIndex
+              );
+            }
+          },
+          {
+            name: "getLinkIconSvg uses general icon for non-primary services",
+            test() {
+              return (
+                getLinkIconSvg("note").includes('aria-label="General link icon"') &&
+                getLinkIconSvg("qiita") === getLinkIconSvg("note")
+              );
+            }
+          },
+          {
+            name: "getLinkIconSvg throws for unknown service",
+            test() {
+              try {
+                getLinkIconSvg("unknown");
+                return false;
+              } catch (error) {
+                return error instanceof Error && error.message.includes("Unknown link service");
+              }
+            }
+          },
+          {
+            name: "initializeTheme resolves system, light, dark",
+            test() {
+              const system = initializeTheme("system");
+              const light = initializeTheme("light");
+              const dark = initializeTheme("dark");
+
+              return (
+                (system.resolved === "light" || system.resolved === "dark") &&
+                light.resolved === "light" &&
+                dark.resolved === "dark"
+              );
+            }
+          },
+          {
+            name: "resolveFrameNodes caches finite positions and properties",
+            test() {
+              return withTemporaryState(
+                {
+                  fieldColumns: 24,
+                  fieldRows: 16,
+                  flowFieldConfig: createFlowFieldConfig(() => 0.42)
+                },
+                () => {
+                  const frameNodes = resolveFrameNodes(1200);
+                  return (
+                    frameNodes.vortices.every((vortex) =>
+                      Number.isFinite(vortex.x) &&
+                      Number.isFinite(vortex.y) &&
+                      Number.isFinite(vortex.radiusSquared) &&
+                      Number.isFinite(vortex.strength)
+                    ) &&
+                    frameNodes.emitters.every((emitter) =>
+                      Number.isFinite(emitter.x) &&
+                      Number.isFinite(emitter.y) &&
+                      Number.isFinite(emitter.inverseSpread) &&
+                      Number.isFinite(emitter.intensity)
+                    )
+                  );
+                }
+              );
+            }
+          },
+          {
+            name: "stepFluidField keeps density field finite",
+            test() {
+              return withTemporaryState(
+                {
+                  fieldColumns: 12,
+                  fieldRows: 8,
+                  flowFieldConfig: createFlowFieldConfig(() => 0.28),
+                  densityField: new Float32Array(96).fill(0.2),
+                  nextDensityField: new Float32Array(96),
+                  rowDriftX: new Float32Array(8),
+                  columnDriftY: new Float32Array(12)
+                },
+                () => {
+                  const frameNodes = resolveFrameNodes(900);
+                  stepFluidField(900, 0.016, frameNodes);
+                  return Array.from(state.densityField).every((value) => Number.isFinite(value));
+                }
+              );
+            }
+          },
+          {
+            name: "initializeGridGeometry caches dot coordinates",
+            test() {
+              return withTemporaryState(
+                {
+                  width: 24,
+                  height: 16,
+                  fieldColumns: 3,
+                  fieldRows: 2,
+                  gridSize: 8,
+                  dotPositionsX: new Uint16Array(0),
+                  dotPositionsY: new Uint16Array(0),
+                  rowDriftX: new Float32Array(0),
+                  columnDriftY: new Float32Array(0)
+                },
+                () => {
+                  initializeGridGeometry();
+                  return (
+                    state.dotPositionsX.length === 6 &&
+                    state.dotPositionsY.length === 6 &&
+                    state.dotPositionsX[0] === 4 &&
+                    state.dotPositionsX[1] === 12 &&
+                    state.dotPositionsX[2] === 20 &&
+                    state.dotPositionsY[0] === 4 &&
+                    state.dotPositionsY[3] === 12
+                  );
+                }
+              );
+            }
+          },
+          {
+            name: "createCanvasContext returns null when canvas is unavailable",
+            test() {
+              if (typeof createCanvasContext !== "function") {
                 return false;
               }
 
-              const data = context.getImageData(0, 0, Math.min(canvas.width, 160), Math.min(canvas.height, 160)).data;
-              const colors = new Set();
-              for (let index = 0; index < data.length; index += 4) {
-                colors.add(`${data[index]},${data[index + 1]},${data[index + 2]},${data[index + 3]}`);
-                if (colors.size > 2) {
-                  return Array.from(colors).every((color) => color.endsWith(",255"));
-                }
+              return (
+                createCanvasContext(null) === null &&
+                createCanvasContext({
+                  getContext() {
+                    throw new Error("context unavailable");
+                  }
+                }) === null
+              );
+            }
+          },
+          {
+            name: "createSeededRandom returns repeatable sequences",
+            test() {
+              if (typeof createSeededRandom !== "function") {
+                return false;
               }
-              return false;
+
+              const firstRandom = createSeededRandom(12345);
+              const secondRandom = createSeededRandom(12345);
+              const firstSequence = [firstRandom(), firstRandom(), firstRandom()];
+              const secondSequence = [secondRandom(), secondRandom(), secondRandom()];
+              return firstSequence.every((value, index) => value === secondSequence[index] && value >= 0 && value < 1);
             }
           },
           {
-            name: "css fallback uses a visible dot grid",
+            name: "createStableFlowFieldConfig returns repeatable config",
             test() {
-              const before = getComputedStyle(document.body, "::before");
-              return before.backgroundImage.includes("radial-gradient") && before.backgroundSize === "12px 12px";
+              if (typeof createStableFlowFieldConfig !== "function") {
+                return false;
+              }
+
+              return JSON.stringify(createStableFlowFieldConfig()) === JSON.stringify(createStableFlowFieldConfig());
             }
           },
           {
-            name: "flow field returns finite values",
+            name: "forced canvas resize keeps stable flow config",
             test() {
-              const flow = flowAt(120, 80, 1000);
-              return Number.isFinite(flow.vx) && Number.isFinite(flow.vy) && Number.isFinite(flow.density);
+              resizeCanvas({ force: true });
+              const firstConfig = JSON.stringify(state.flowFieldConfig);
+              resizeCanvas({ force: true });
+              const secondConfig = JSON.stringify(state.flowFieldConfig);
+              return firstConfig === secondConfig;
+            }
+          },
+          {
+            name: "quality profiles share the visual grid size",
+            test() {
+              if (typeof VISUAL_GRID_SIZE !== "number") {
+                return false;
+              }
+
+              return Object.values(CANVAS_QUALITY_PROFILES).every((profile) => profile.gridSize === VISUAL_GRID_SIZE);
+            }
+          },
+          {
+            name: "resolveCanvasDpr buckets fractional dpr below cap",
+            test() {
+              if (typeof resolveCanvasDpr !== "function") {
+                return false;
+              }
+
+              return (
+                resolveCanvasDpr(1.25, 1.5) === 1 &&
+                resolveCanvasDpr(1.8, 1.5) === 1 &&
+                resolveCanvasDpr(2, 1.5) === 1 &&
+                resolveCanvasDpr(2, 2) === 2 &&
+                resolveCanvasDpr(3, 2) === 2
+              );
+            }
+          },
+          {
+            name: "selectQualityProfile uses low quality for save data",
+            test() {
+              if (typeof selectQualityProfile !== "function") {
+                return false;
+              }
+
+              const normal = selectQualityProfile({ connection: { saveData: false } });
+              const saveData = selectQualityProfile({ connection: { saveData: true } });
+              return normal.name === "high" && saveData.name === "low";
+            }
+          },
+          {
+            name: "shouldRenderFrame skips frames inside quality interval",
+            test() {
+              if (typeof shouldRenderFrame !== "function") {
+                return false;
+              }
+
+              return withTemporaryState(
+                {
+                  frameInterval: 100,
+                  lastFrame: 1000
+                },
+                () => !shouldRenderFrame(1050) && shouldRenderFrame(1100)
+              );
+            }
+          },
+          {
+            name: "scheduleCanvasResize coalesces resize requests",
+            test() {
+              if (typeof scheduleCanvasResize !== "function") {
+                return false;
+              }
+
+              const previousRequestAnimationFrame = window.requestAnimationFrame;
+              let scheduled = 0;
+              window.requestAnimationFrame = () => {
+                scheduled += 1;
+                return scheduled;
+              };
+
+              try {
+                return withTemporaryState(
+                  {
+                    resizeRafId: 0
+                  },
+                  () => {
+                    const first = scheduleCanvasResize();
+                    const second = scheduleCanvasResize();
+                    return first === true && second === false && scheduled === 1;
+                  }
+                );
+              } finally {
+                window.requestAnimationFrame = previousRequestAnimationFrame;
+              }
+            }
+          },
+          {
+            name: "canvas helpers no-op without a context",
+            test() {
+              return withTemporaryState(
+                {
+                  ctx: null
+                },
+                () => drawStaticBackdrop() === false && resizeCanvas() === false
+              );
+            }
+          },
+          {
+            name: "syncPalette updates numeric rgb cache",
+            test() {
+              initializeTheme("light");
+              const lightFg = state.paletteRgb.fg.join(",");
+              initializeTheme("dark");
+              const darkFg = state.paletteRgb.fg.join(",");
+              return (
+                lightFg !== darkFg &&
+                state.paletteRgb.fg.every((value) => Number.isFinite(value)) &&
+                state.paletteRgb.bg.every((value) => Number.isFinite(value))
+              );
+            }
+          },
+          {
+            name: "canvas colors use legacy comma-separated syntax",
+            test() {
+              if (typeof formatCanvasRgb !== "function" || typeof formatCanvasRgba !== "function") {
+                return false;
+              }
+
+              const rgb = formatCanvasRgb([244, 244, 241]);
+              const rgba = formatCanvasRgba([244, 244, 241], 0.1);
+              return (
+                rgb === "rgb(244, 244, 241)" &&
+                rgba === "rgba(244, 244, 241, 0.1)" &&
+                !rgb.includes("244 244 241") &&
+                !rgba.includes("/")
+              );
+            }
+          },
+          {
+            name: "canvas rgba alpha is clamped",
+            test() {
+              return (
+                formatCanvasRgba([244, 244, 241], -0.5) === "rgba(244, 244, 241, 0)" &&
+                formatCanvasRgba([244, 244, 241], 1.5) === "rgba(244, 244, 241, 1)"
+              );
             }
           }
         ];
@@ -619,11 +1759,24 @@
 
       function bootstrap() {
         renderProfile();
-        applyTheme(state.theme);
+        initializeTheme();
+        applyQualityProfile(selectQualityProfile(navigator));
         resizeCanvas();
+        state.initialized = true;
         startAnimation();
+
         themeToggle.addEventListener("click", toggleTheme);
-        window.addEventListener("resize", resizeCanvas);
+        window.addEventListener("resize", scheduleCanvasResize);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        reducedMotionQuery.addEventListener("change", () => {
+          stopAnimation();
+          startAnimation();
+        });
+        systemThemeQuery.addEventListener("change", () => {
+          if (state.themePreference === "system") {
+            applyTheme("system");
+          }
+        });
 
         if (window.location.hash === "#test") {
           runTests();
