@@ -30,6 +30,7 @@
         --fg-rgb: 13 13 15;
         --noise-rgb: 10 10 12;
         --shadow: 0 28px 80px rgba(13, 13, 15, 0.08);
+        --hover-shadow: 0 18px 42px rgba(13, 13, 15, 0.1);
       }
 
       :root[data-theme="dark"] {
@@ -44,6 +45,7 @@
         --fg-rgb: 244 244 241;
         --noise-rgb: 246 246 243;
         --shadow: 0 28px 80px rgba(0, 0, 0, 0.24);
+        --hover-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
       }
 
       * {
@@ -64,7 +66,9 @@
           radial-gradient(circle at bottom right, rgba(127, 127, 127, 0.06), transparent 30%),
           var(--bg);
         color: var(--fg);
-        font-family: "Avenir Next", "Hiragino Sans", "Yu Gothic", sans-serif;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 16px;
+        font-weight: 100;
         transition:
           background-color 240ms ease,
           color 240ms ease;
@@ -91,14 +95,17 @@
         border-radius: 999px;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        font-size: 0.68rem;
-        font-weight: 700;
+        font-family: inherit;
+        font-size: 0.74rem;
+        font-weight: 100;
         cursor: pointer;
         backdrop-filter: blur(18px);
         transition:
-          transform 200ms ease,
-          border-color 200ms ease,
-          background-color 200ms ease;
+          transform 360ms cubic-bezier(0.16, 1, 0.3, 1),
+          border-color 360ms ease,
+          background-color 360ms ease,
+          box-shadow 360ms ease,
+          color 360ms ease;
       }
 
       .page-header {
@@ -106,12 +113,16 @@
         top: 1.5rem;
         left: 1.5rem;
         z-index: 3;
+        max-width: calc(100vw - 3rem);
       }
 
       .theme-toggle:hover,
       .theme-toggle:focus-visible {
-        transform: translateY(-1px);
+        transform: translateY(-2px);
         border-color: var(--accent);
+        background: rgb(var(--fg-rgb) / 0.08);
+        box-shadow: var(--hover-shadow);
+        color: var(--fg);
         outline: none;
       }
 
@@ -125,7 +136,7 @@
       }
 
       .portrait {
-        font-family: "Courier New";
+        font-family: inherit;
         position: relative;
         isolation: isolate;
         overflow: hidden;
@@ -158,17 +169,20 @@
       }
 
       .name {
+        display: block;
         margin: 0;
         border: 1px solid var(--line);
         background: var(--panel);
         color: var(--muted);
         padding: 0.8rem 1rem;
         border-radius: 999px;
-        font-family: "Courier New", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-        font-size: clamp(0.95rem, 1.1vw, 1.15rem);
+        font-family: inherit;
+        font-size: clamp(1rem, 1.35vw, 1.16rem);
         line-height: 1;
         letter-spacing: 0.08em;
-        font-weight: 700;
+        font-weight: 100;
+        max-width: 100%;
+        overflow-wrap: anywhere;
         backdrop-filter: blur(18px);
         transition:
           transform 200ms ease,
@@ -192,6 +206,9 @@
       }
 
       .link-chip {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
         display: grid;
         grid-template-columns: 1rem minmax(0, 1fr) 1rem;
         align-items: center;
@@ -205,19 +222,40 @@
         box-sizing: border-box;
         color: var(--fg);
         text-decoration: none;
-        font-size: 0.88rem;
+        font-size: 0.96rem;
         letter-spacing: 0.04em;
         background: rgba(255, 255, 255, 0.02);
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0);
         transition:
-          transform 180ms ease,
-          border-color 180ms ease,
-          background-color 180ms ease;
+          transform 380ms cubic-bezier(0.16, 1, 0.3, 1),
+          border-color 380ms ease,
+          background-color 380ms ease,
+          box-shadow 380ms ease;
+      }
+
+      .link-chip::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        border-radius: inherit;
+        background:
+          radial-gradient(circle at 20% 50%, rgb(var(--fg-rgb) / 0.12), transparent 38%),
+          linear-gradient(90deg, rgb(var(--fg-rgb) / 0.08), rgb(var(--fg-rgb) / 0.03));
+        opacity: 0;
+        transition: opacity 420ms ease;
       }
 
       .link-chip::after {
         content: "";
         width: 1rem;
         height: 1rem;
+      }
+
+      .link-chip > *,
+      .link-chip::after {
+        position: relative;
+        z-index: 1;
       }
 
       .link-icon {
@@ -229,6 +267,9 @@
         height: 1rem;
         color: var(--fg);
         transform: translateX(0.25rem);
+        transition:
+          color 380ms ease,
+          transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
       }
 
       .link-icon svg {
@@ -240,10 +281,21 @@
 
       .link-chip:hover,
       .link-chip:focus-visible {
-        transform: translateY(-1px);
+        transform: translateY(-3px);
         border-color: var(--accent);
         background: rgba(255, 255, 255, 0.08);
+        box-shadow: var(--hover-shadow);
         outline: none;
+      }
+
+      .link-chip:hover::before,
+      .link-chip:focus-visible::before {
+        opacity: 1;
+      }
+
+      .link-chip:hover .link-icon,
+      .link-chip:focus-visible .link-icon {
+        transform: translateX(0.32rem) scale(1.06);
       }
 
       .link-label {
@@ -252,8 +304,14 @@
         text-align: center;
         line-height: 1;
         letter-spacing: 0.14em;
-        font-size: 0.78rem;
-        font-weight: 700;
+        font-size: 0.88rem;
+        font-weight: 100;
+        transition: color 380ms ease;
+      }
+
+      .link-chip:hover .link-label,
+      .link-chip:focus-visible .link-label {
+        color: var(--fg);
       }
 
       .footer-note {
@@ -270,7 +328,7 @@
         border-radius: 14px;
         background: var(--panel);
         color: var(--muted);
-        font-size: 0.68rem;
+        font-size: 0.76rem;
         letter-spacing: 0.14em;
         backdrop-filter: blur(18px);
         box-shadow: var(--shadow);
@@ -286,7 +344,7 @@
         border-radius: 999px;
         border: 1px solid var(--line);
         background: var(--panel);
-        font-size: 0.75rem;
+        font-size: 0.76rem;
         letter-spacing: 0.08em;
         text-transform: uppercase;
         backdrop-filter: blur(18px);
@@ -296,6 +354,8 @@
         .page-header {
           top: 1rem;
           left: 1rem;
+          right: 6.75rem;
+          max-width: none;
         }
 
         .theme-toggle {
@@ -306,6 +366,7 @@
 
         .name {
           padding-inline: 0.85rem;
+          line-height: 1.15;
         }
 
         .portrait {
@@ -322,7 +383,10 @@
       @media (prefers-reduced-motion: reduce) {
         .theme-toggle,
         .name,
-        .link-chip {
+        .link-chip,
+        .link-chip::before,
+        .link-icon,
+        .link-label {
           transition: none;
         }
       }
@@ -391,6 +455,15 @@
       const FLOW_NODE_COUNT_RANGE = { min: 3, max: 5 };
       const FLOW_FIELD_FADE = 0.992;
       const CANVAS_TRAIL_ALPHA = 0.1;
+      const CANVAS_QUALITY_PROFILES = Object.freeze({
+        high: Object.freeze({ name: "high", gridSize: 8, dprCap: 1.5, fps: 30 }),
+        balanced: Object.freeze({ name: "balanced", gridSize: 10, dprCap: 1.25, fps: 24 }),
+        low: Object.freeze({ name: "low", gridSize: 12, dprCap: 1, fps: 20 })
+      });
+      const CANVAS_QUALITY_ORDER = ["high", "balanced", "low"];
+      const SLOW_FRAME_LIMIT = 4;
+      const SLOW_FRAME_FACTOR = 1.65;
+      const ALPHA_BUCKET_COUNT = 8;
       const BASE_VORTEX_RADIUS_RANGE = { min: 20, max: 36 };
       const VORTEX_RADIUS_RANGE = {
         min: BASE_VORTEX_RADIUS_RANGE.min * FLOW_FIELD_SCALE,
@@ -402,7 +475,7 @@
         max: BASE_EMITTER_SPREAD_RANGE.max * FLOW_FIELD_SCALE
       };
       const canvas = document.querySelector(".noise-field");
-      const ctx = canvas.getContext("2d");
+      const initialCanvasContext = createCanvasContext(canvas);
       const themeToggle = document.getElementById("theme-toggle");
       const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
       const systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -410,12 +483,20 @@
         width: 0,
         height: 0,
         dpr: 1,
+        dprCap: CANVAS_QUALITY_PROFILES.high.dprCap,
         rafId: 0,
+        resizeRafId: 0,
         running: false,
         lastFrame: 0,
+        frameInterval: 1000 / CANVAS_QUALITY_PROFILES.high.fps,
+        slowFrameCount: 0,
         initialized: false,
         themePreference: "system",
         resolvedTheme: "light",
+        canvas,
+        ctx: initialCanvasContext,
+        qualityProfileName: CANVAS_QUALITY_PROFILES.high.name,
+        qualityProfile: CANVAS_QUALITY_PROFILES.high,
         fieldColumns: 0,
         fieldRows: 0,
         densityField: new Float32Array(0),
@@ -495,6 +576,83 @@
       function formatCanvasRgba(rgb, alpha) {
         const [red, green, blue] = rgb.map((channel) => Math.round(clamp(channel, 0, 255)));
         return `rgba(${red}, ${green}, ${blue}, ${clamp(alpha, 0, 1)})`;
+      }
+
+      function createCanvasContext(canvasElement) {
+        if (!canvasElement || typeof canvasElement.getContext !== "function") {
+          return null;
+        }
+
+        try {
+          const acceleratedContext = canvasElement.getContext("2d", {
+            alpha: false,
+            desynchronized: true
+          });
+          if (acceleratedContext) {
+            return acceleratedContext;
+          }
+        } catch (error) {
+          // Some browsers throw for context attributes; fall back to a plain 2d context.
+        }
+
+        try {
+          return canvasElement.getContext("2d");
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function selectQualityProfile(environment = navigator) {
+        const connection = environment?.connection || environment?.mozConnection || environment?.webkitConnection;
+        if (connection?.saveData === true) {
+          return CANVAS_QUALITY_PROFILES.low;
+        }
+
+        return CANVAS_QUALITY_PROFILES.high;
+      }
+
+      function applyQualityProfile(profile) {
+        const nextProfile = typeof profile === "string" ? CANVAS_QUALITY_PROFILES[profile] : profile;
+        if (!nextProfile) {
+          return state.qualityProfile;
+        }
+
+        state.qualityProfile = nextProfile;
+        state.qualityProfileName = nextProfile.name;
+        state.gridSize = nextProfile.gridSize;
+        state.dprCap = nextProfile.dprCap;
+        state.frameInterval = 1000 / nextProfile.fps;
+        state.slowFrameCount = 0;
+        return nextProfile;
+      }
+
+      function degradeQualityProfile() {
+        const currentIndex = CANVAS_QUALITY_ORDER.indexOf(state.qualityProfileName);
+        if (currentIndex < 0 || currentIndex >= CANVAS_QUALITY_ORDER.length - 1) {
+          return false;
+        }
+
+        applyQualityProfile(CANVAS_QUALITY_ORDER[currentIndex + 1]);
+        resizeCanvas({ force: true });
+        return true;
+      }
+
+      function recordFramePerformance(duration) {
+        if (!Number.isFinite(duration) || duration <= state.frameInterval * SLOW_FRAME_FACTOR) {
+          state.slowFrameCount = 0;
+          return false;
+        }
+
+        state.slowFrameCount += 1;
+        if (state.slowFrameCount < SLOW_FRAME_LIMIT) {
+          return false;
+        }
+
+        return degradeQualityProfile();
+      }
+
+      function shouldRenderFrame(time) {
+        return state.lastFrame === 0 || time - state.lastFrame >= state.frameInterval;
       }
 
       function createFlowNodes(count, buildNode) {
@@ -612,19 +770,24 @@
         return {
           vortices: state.flowFieldConfig.vortices.map((vortex) => {
             const center = resolveOrbitPosition(vortex, vortexOrbit, state.fieldColumns, state.fieldRows);
+            const radiusSquared = vortex.radius * vortex.radius;
             return {
               x: center.x,
               y: center.y,
-              radiusSquared: vortex.radius * vortex.radius,
+              radiusSquared,
+              inverseRadiusSquared: 1 / radiusSquared,
+              cutoffDistanceSquared: radiusSquared * 9,
               strength: vortex.strength
             };
           }),
           emitters: state.flowFieldConfig.emitters.map((emitter) => {
             const center = resolveOrbitPosition(emitter, emitterOrbit, state.fieldColumns, state.fieldRows);
+            const inverseSpread = 1 / emitter.spread;
             return {
               x: center.x,
               y: center.y,
-              inverseSpread: 1 / emitter.spread,
+              inverseSpread,
+              cutoffDistanceSquared: 9 / inverseSpread,
               intensity: emitter.intensity
             };
           })
@@ -641,7 +804,11 @@
           const dx = x - vortex.x;
           const dy = y - vortex.y;
           const distanceSquared = dx * dx + dy * dy + 0.0001;
-          const influence = vortex.strength * Math.exp(-(distanceSquared / vortex.radiusSquared)) / Math.sqrt(distanceSquared);
+          if (distanceSquared > vortex.cutoffDistanceSquared) {
+            continue;
+          }
+
+          const influence = vortex.strength * Math.exp(-(distanceSquared * vortex.inverseRadiusSquared)) / Math.sqrt(distanceSquared);
           totalVx += -dy * influence;
           totalVy += dx * influence;
         }
@@ -658,7 +825,12 @@
         for (const emitter of frameNodes.emitters) {
           const dx = x - emitter.x;
           const dy = y - emitter.y;
-          const blob = Math.exp(-((dx * dx + dy * dy) * emitter.inverseSpread)) * emitter.intensity;
+          const distanceSquared = dx * dx + dy * dy;
+          if (distanceSquared > emitter.cutoffDistanceSquared) {
+            continue;
+          }
+
+          const blob = Math.exp(-(distanceSquared * emitter.inverseSpread)) * emitter.intensity;
           density = Math.max(density, blob);
         }
 
@@ -718,6 +890,8 @@
         const nextField = state.nextDensityField;
         const vortices = frameNodes.vortices;
         const emitters = frameNodes.emitters;
+        const maxX = columns - 1;
+        const maxY = rows - 1;
 
         populateDriftTables(time);
 
@@ -741,14 +915,30 @@
               const dx = x - vortex.x;
               const dy = y - vortex.y;
               const distanceSquared = dx * dx + dy * dy + 0.0001;
-              const influence = vortex.strength * Math.exp(-(distanceSquared / vortex.radiusSquared)) / Math.sqrt(distanceSquared);
+              if (distanceSquared > vortex.cutoffDistanceSquared) {
+                continue;
+              }
+
+              const influence = vortex.strength * Math.exp(-(distanceSquared * vortex.inverseRadiusSquared)) / Math.sqrt(distanceSquared);
               totalVx += -dy * influence;
               totalVy += dx * influence;
             }
 
             const sourceX = x - totalVx * scaledDt;
             const sourceY = y - totalVy * scaledDt;
-            const advected = bilinearSample(currentField, sourceX, sourceY);
+            const sampleX = sourceX < 0 ? 0 : sourceX > maxX ? maxX : sourceX;
+            const sampleY = sourceY < 0 ? 0 : sourceY > maxY ? maxY : sourceY;
+            const x0 = Math.floor(sampleX);
+            const y0 = Math.floor(sampleY);
+            const x1 = x0 === maxX ? maxX : x0 + 1;
+            const y1 = y0 === maxY ? maxY : y0 + 1;
+            const tx = sampleX - x0;
+            const ty = sampleY - y0;
+            const sampleRowOffset0 = y0 * columns;
+            const sampleRowOffset1 = y1 * columns;
+            const top = lerp(currentField[sampleRowOffset0 + x0], currentField[sampleRowOffset0 + x1], tx);
+            const bottom = lerp(currentField[sampleRowOffset1 + x0], currentField[sampleRowOffset1 + x1], tx);
+            const advected = lerp(top, bottom, ty);
             const left = currentField[leftIndex];
             const right = currentField[rightIndex];
             const up = currentField[upIndex];
@@ -760,7 +950,12 @@
               const emitter = emitters[emitterIndex];
               const dx = x - emitter.x;
               const dy = y - emitter.y;
-              const density = Math.exp(-((dx * dx + dy * dy) * emitter.inverseSpread)) * emitter.intensity;
+              const distanceSquared = dx * dx + dy * dy;
+              if (distanceSquared > emitter.cutoffDistanceSquared) {
+                continue;
+              }
+
+              const density = Math.exp(-(distanceSquared * emitter.inverseSpread)) * emitter.intensity;
               if (density > injected) {
                 injected = density;
               }
@@ -868,10 +1063,16 @@
       }
 
       function drawStaticBackdrop() {
-        ctx.clearRect(0, 0, state.width, state.height);
-        ctx.fillStyle = formatCanvasRgb(state.paletteRgb.bg);
-        ctx.fillRect(0, 0, state.width, state.height);
+        const context = state.ctx;
+        if (!context) {
+          return false;
+        }
+
+        context.clearRect(0, 0, state.width, state.height);
+        context.fillStyle = formatCanvasRgb(state.paletteRgb.bg);
+        context.fillRect(0, 0, state.width, state.height);
         drawGridBackdrop();
+        return true;
       }
 
       function applyTheme(preference) {
@@ -904,31 +1105,65 @@
       }
 
       function drawGridBackdrop() {
+        const context = state.ctx;
+        if (!context) {
+          return 0;
+        }
+
         const maxAlpha = state.resolvedTheme === "dark" ? 0.46 : 0.34;
-        ctx.fillStyle = formatCanvasRgb(state.paletteRgb.fg);
+        let currentBucket = 0;
+        let drawnDots = 0;
+        context.fillStyle = formatCanvasRgb(state.paletteRgb.fg);
         for (let index = 0; index < state.densityField.length; index += 1) {
           const fillAlpha = smoothstep(0.08, 0.92, state.densityField[index]) * maxAlpha;
           if (fillAlpha <= 0.004) {
             continue;
           }
 
-          ctx.globalAlpha = fillAlpha;
-          ctx.fillRect(state.dotPositionsX[index], state.dotPositionsY[index], 1, 1);
+          const alphaBucket = Math.ceil((fillAlpha / maxAlpha) * ALPHA_BUCKET_COUNT);
+          if (alphaBucket !== currentBucket) {
+            context.globalAlpha = (alphaBucket / ALPHA_BUCKET_COUNT) * maxAlpha;
+            currentBucket = alphaBucket;
+          }
+
+          context.fillRect(state.dotPositionsX[index], state.dotPositionsY[index], 1, 1);
+          drawnDots += 1;
         }
-        ctx.globalAlpha = 1;
+        context.globalAlpha = 1;
+        return drawnDots;
       }
 
-      function resizeCanvas() {
-        state.dpr = Math.min(window.devicePixelRatio || 1, 1.8);
-        state.width = window.innerWidth;
-        state.height = window.innerHeight;
-        canvas.width = Math.round(state.width * state.dpr);
-        canvas.height = Math.round(state.height * state.dpr);
-        canvas.style.width = state.width + "px";
-        canvas.style.height = state.height + "px";
-        ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
-        ctx.imageSmoothingEnabled = false;
-        ctx.clearRect(0, 0, state.width, state.height);
+      function resizeCanvas(options = {}) {
+        const targetCanvas = state.canvas;
+        const context = state.ctx;
+        if (!targetCanvas || !context) {
+          return false;
+        }
+
+        const force = options.force === true;
+        const nextWidth = window.innerWidth;
+        const nextHeight = window.innerHeight;
+        const nextDpr = Math.min(window.devicePixelRatio || 1, state.dprCap);
+        if (
+          !force &&
+          state.width === nextWidth &&
+          state.height === nextHeight &&
+          state.dpr === nextDpr &&
+          state.densityField.length > 0
+        ) {
+          return false;
+        }
+
+        state.dpr = nextDpr;
+        state.width = nextWidth;
+        state.height = nextHeight;
+        targetCanvas.width = Math.round(state.width * state.dpr);
+        targetCanvas.height = Math.round(state.height * state.dpr);
+        targetCanvas.style.width = state.width + "px";
+        targetCanvas.style.height = state.height + "px";
+        context.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+        context.imageSmoothingEnabled = false;
+        context.clearRect(0, 0, state.width, state.height);
         state.fieldColumns = Math.ceil(state.width / state.gridSize) + 1;
         state.fieldRows = Math.ceil(state.height / state.gridSize) + 1;
         state.flowFieldConfig = createFlowFieldConfig();
@@ -938,37 +1173,70 @@
         if (!state.running || reducedMotionQuery.matches) {
           drawStaticBackdrop();
         }
+        return true;
+      }
+
+      function scheduleCanvasResize() {
+        if (!state.canvas || !state.ctx || state.resizeRafId !== 0) {
+          return false;
+        }
+
+        state.resizeRafId = window.requestAnimationFrame(() => {
+          state.resizeRafId = 0;
+          resizeCanvas();
+        });
+        return true;
       }
 
       function paintFrame(time) {
+        const context = state.ctx;
+        if (!context) {
+          return false;
+        }
+
+        if (!shouldRenderFrame(time)) {
+          if (state.running) {
+            state.rafId = window.requestAnimationFrame(paintFrame);
+          }
+          return false;
+        }
+
+        const performanceStart = typeof performance !== "undefined" ? performance.now() : time;
         const dt = state.lastFrame === 0 ? 0.016 : Math.min((time - state.lastFrame) / 1000, 0.033);
         state.lastFrame = time;
         state.frameNodes = resolveFrameNodes(time);
         stepFluidField(time, dt, state.frameNodes);
 
-        ctx.fillStyle = formatCanvasRgba(state.paletteRgb.bg, CANVAS_TRAIL_ALPHA);
-        ctx.fillRect(0, 0, state.width, state.height);
+        context.fillStyle = formatCanvasRgba(state.paletteRgb.bg, CANVAS_TRAIL_ALPHA);
+        context.fillRect(0, 0, state.width, state.height);
         drawGridBackdrop();
+        recordFramePerformance((typeof performance !== "undefined" ? performance.now() : time) - performanceStart);
 
         if (state.running) {
           state.rafId = window.requestAnimationFrame(paintFrame);
         }
+        return true;
       }
 
       function startAnimation() {
+        if (!state.ctx) {
+          return false;
+        }
+
         if (reducedMotionQuery.matches) {
           drawStaticBackdrop();
-          return;
+          return false;
         }
 
         if (state.running) {
           drawStaticBackdrop();
-          return;
+          return true;
         }
 
         state.running = true;
         state.lastFrame = 0;
         state.rafId = window.requestAnimationFrame(paintFrame);
+        return true;
       }
 
       function stopAnimation() {
@@ -1266,6 +1534,92 @@
             }
           },
           {
+            name: "createCanvasContext returns null when canvas is unavailable",
+            test() {
+              if (typeof createCanvasContext !== "function") {
+                return false;
+              }
+
+              return (
+                createCanvasContext(null) === null &&
+                createCanvasContext({
+                  getContext() {
+                    throw new Error("context unavailable");
+                  }
+                }) === null
+              );
+            }
+          },
+          {
+            name: "selectQualityProfile uses low quality for save data",
+            test() {
+              if (typeof selectQualityProfile !== "function") {
+                return false;
+              }
+
+              const normal = selectQualityProfile({ connection: { saveData: false } });
+              const saveData = selectQualityProfile({ connection: { saveData: true } });
+              return normal.name === "high" && saveData.name === "low";
+            }
+          },
+          {
+            name: "shouldRenderFrame skips frames inside quality interval",
+            test() {
+              if (typeof shouldRenderFrame !== "function") {
+                return false;
+              }
+
+              return withTemporaryState(
+                {
+                  frameInterval: 100,
+                  lastFrame: 1000
+                },
+                () => !shouldRenderFrame(1050) && shouldRenderFrame(1100)
+              );
+            }
+          },
+          {
+            name: "scheduleCanvasResize coalesces resize requests",
+            test() {
+              if (typeof scheduleCanvasResize !== "function") {
+                return false;
+              }
+
+              const previousRequestAnimationFrame = window.requestAnimationFrame;
+              let scheduled = 0;
+              window.requestAnimationFrame = () => {
+                scheduled += 1;
+                return scheduled;
+              };
+
+              try {
+                return withTemporaryState(
+                  {
+                    resizeRafId: 0
+                  },
+                  () => {
+                    const first = scheduleCanvasResize();
+                    const second = scheduleCanvasResize();
+                    return first === true && second === false && scheduled === 1;
+                  }
+                );
+              } finally {
+                window.requestAnimationFrame = previousRequestAnimationFrame;
+              }
+            }
+          },
+          {
+            name: "canvas helpers no-op without a context",
+            test() {
+              return withTemporaryState(
+                {
+                  ctx: null
+                },
+                () => drawStaticBackdrop() === false && resizeCanvas() === false
+              );
+            }
+          },
+          {
             name: "syncPalette updates numeric rgb cache",
             test() {
               initializeTheme("light");
@@ -1321,12 +1675,13 @@
       function bootstrap() {
         renderProfile();
         initializeTheme();
+        applyQualityProfile(selectQualityProfile(navigator));
         resizeCanvas();
         state.initialized = true;
         startAnimation();
 
         themeToggle.addEventListener("click", toggleTheme);
-        window.addEventListener("resize", resizeCanvas);
+        window.addEventListener("resize", scheduleCanvasResize);
         document.addEventListener("visibilitychange", handleVisibilityChange);
         reducedMotionQuery.addEventListener("change", () => {
           stopAnimation();
