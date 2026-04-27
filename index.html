@@ -399,16 +399,6 @@
         }
       }
 
-      @media (prefers-reduced-motion: reduce) {
-        .theme-toggle,
-        .name,
-        .link-chip,
-        .link-chip::before,
-        .link-icon,
-        .link-label {
-          transition: none;
-        }
-      }
     </style>
   </head>
   <body>
@@ -498,7 +488,6 @@
       const canvas = document.querySelector(".noise-field");
       const initialCanvasContext = createCanvasContext(canvas);
       const themeToggle = document.getElementById("theme-toggle");
-      const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
       const systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
       const state = {
         width: 0,
@@ -1119,10 +1108,8 @@
         themeToggle.textContent = state.resolvedTheme === "dark" ? "Light" : "Dark";
         syncPalette();
 
-        if (state.initialized) {
-          if (!state.running || reducedMotionQuery.matches) {
-            drawStaticBackdrop();
-          }
+        if (state.initialized && !state.running) {
+          drawStaticBackdrop();
         }
       }
 
@@ -1213,7 +1200,7 @@
         state.frameNodes = resolveFrameNodes(0);
         initializeGridGeometry();
         seedDensityField();
-        if (!state.running || reducedMotionQuery.matches) {
+        if (!state.running) {
           drawStaticBackdrop();
         }
         return true;
@@ -1266,10 +1253,6 @@
           return false;
         }
 
-        if (reducedMotionQuery.matches) {
-          drawStaticBackdrop();
-          return false;
-        }
 
         if (state.running) {
           drawStaticBackdrop();
@@ -1814,10 +1797,6 @@
         themeToggle.addEventListener("click", toggleTheme);
         window.addEventListener("resize", scheduleCanvasResize);
         document.addEventListener("visibilitychange", handleVisibilityChange);
-        reducedMotionQuery.addEventListener("change", () => {
-          stopAnimation();
-          startAnimation();
-        });
         systemThemeQuery.addEventListener("change", () => {
           if (state.themePreference === "system") {
             applyTheme("system");
