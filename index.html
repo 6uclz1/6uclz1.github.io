@@ -466,6 +466,8 @@
       const SLOW_FRAME_LIMIT = 4;
       const SLOW_FRAME_FACTOR = 1.65;
       const ALPHA_BUCKET_COUNT = 8;
+      const AMBIENT_DENSITY_MIN = 0.018;
+      const AMBIENT_DENSITY_MAX = 0.14;
       const BASE_VORTEX_RADIUS_RANGE = { min: 20, max: 36 };
       const VORTEX_RADIUS_RANGE = {
         min: BASE_VORTEX_RADIUS_RANGE.min * FLOW_FIELD_SCALE,
@@ -754,9 +756,13 @@
         return y * state.fieldColumns + x;
       }
 
-      function bilinearSample(field, x, y) {
-        const maxX = state.fieldColumns - 1;
-        const maxY = state.fieldRows - 1;
+      function sampleDensityField(field, columns, rows, x, y) {
+        if (!field || columns <= 0 || rows <= 0 || field.length < columns * rows) {
+          return 0;
+        }
+
+        const maxX = columns - 1;
+        const maxY = rows - 1;
         const sampleX = x < 0 ? 0 : x > maxX ? maxX : x;
         const sampleY = y < 0 ? 0 : y > maxY ? maxY : y;
         const x0 = Math.floor(sampleX);
@@ -765,11 +771,47 @@
         const y1 = Math.min(y0 + 1, maxY);
         const tx = sampleX - x0;
         const ty = sampleY - y0;
-        const rowOffset0 = y0 * state.fieldColumns;
-        const rowOffset1 = y1 * state.fieldColumns;
+        const rowOffset0 = y0 * columns;
+        const rowOffset1 = y1 * columns;
         const top = lerp(field[rowOffset0 + x0], field[rowOffset0 + x1], tx);
         const bottom = lerp(field[rowOffset1 + x0], field[rowOffset1 + x1], tx);
         return lerp(top, bottom, ty);
+      }
+
+      function bilinearSample(field, x, y) {
+        return sampleDensityField(field, state.fieldColumns, state.fieldRows, x, y);
+      }
+
+      function resizeDensityField(previousField, previousColumns, previousRows, nextColumns, nextRows) {
+        const nextSize = nextColumns * nextRows;
+        const nextField = new Float32Array(nextSize);
+        if (
+          !previousField ||
+          previousColumns <= 0 ||
+          previousRows <= 0 ||
+          nextColumns <= 0 ||
+          nextRows <= 0 ||
+          previousField.length < previousColumns * previousRows
+        ) {
+          return nextField;
+        }
+
+        const scaleX = nextColumns > 1 ? (previousColumns - 1) / (nextColumns - 1) : 0;
+        const scaleY = nextRows > 1 ? (previousRows - 1) / (nextRows - 1) : 0;
+
+        for (let row = 0; row < nextRows; row += 1) {
+          for (let column = 0; column < nextColumns; column += 1) {
+            nextField[row * nextColumns + column] = sampleDensityField(
+              previousField,
+              previousColumns,
+              previousRows,
+              column * scaleX,
+              row * scaleY
+            );
+          }
+        }
+
+        return nextField;
       }
 
       function resolveOrbitPosition(node, orbit, width, height) {
@@ -853,19 +895,22 @@
         return density;
       }
 
-      function seedDensityField() {
+      function seedAmbientDensityField() {
         const size = state.fieldColumns * state.fieldRows;
         state.densityField = new Float32Array(size);
         state.nextDensityField = new Float32Array(size);
 
         for (let y = 0; y < state.fieldRows; y += 1) {
           for (let x = 0; x < state.fieldColumns; x += 1) {
-            const wave =
-              Math.sin(x * 0.11) * 0.06 +
-              Math.cos(y * 0.09) * 0.05 +
-              Math.sin((x + y) * 0.04) * 0.04;
-            const base = clamp(0.16 + wave, 0, 1);
-            state.densityField[fieldIndex(x, y)] = base;
+            const rawNoise = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
+            const noise = rawNoise - Math.floor(rawNoise);
+            const sparseDot = smoothstep(0.82, 1, noise);
+            const softVariation = (Math.sin(x * 0.37) + Math.cos(y * 0.41)) * 0.004;
+            const density =
+              AMBIENT_DENSITY_MIN +
+              softVariation +
+              sparseDot * (AMBIENT_DENSITY_MAX - AMBIENT_DENSITY_MIN);
+            state.densityField[fieldIndex(x, y)] = clamp(density, 0, AMBIENT_DENSITY_MAX);
           }
         }
       }
@@ -1165,6 +1210,9 @@
         const nextWidth = window.innerWidth;
         const nextHeight = window.innerHeight;
         const nextDpr = resolveCanvasDpr(window.devicePixelRatio || 1, state.dprCap);
+        const previousColumns = state.fieldColumns;
+        const previousRows = state.fieldRows;
+        const previousDensityField = state.densityField;
         if (
           !force &&
           state.width === nextWidth &&
@@ -1187,13 +1235,31 @@
         context.clearRect(0, 0, state.width, state.height);
         state.fieldColumns = Math.ceil(state.width / state.gridSize) + 1;
         state.fieldRows = Math.ceil(state.height / state.gridSize) + 1;
-        state.flowFieldConfig = createStableFlowFieldConfig();
-        state.frameNodes = resolveFrameNodes(0);
-        initializeGridGeometry();
-        seedDensityField();
-        if (!state.running) {
-          drawStaticBackdrop();
+        if (!state.flowFieldConfig) {
+          state.flowFieldConfig = createStableFlowFieldConfig();
         }
+        state.frameNodes = resolveFrameNodes(state.lastFrame || 0);
+        initializeGridGeometry();
+
+        if (
+          previousColumns > 0 &&
+          previousRows > 0 &&
+          previousDensityField &&
+          previousDensityField.length >= previousColumns * previousRows
+        ) {
+          state.densityField = resizeDensityField(
+            previousDensityField,
+            previousColumns,
+            previousRows,
+            state.fieldColumns,
+            state.fieldRows
+          );
+          state.nextDensityField = new Float32Array(state.densityField.length);
+        } else {
+          seedAmbientDensityField();
+        }
+
+        drawStaticBackdrop();
         return true;
       }
 
@@ -1433,6 +1499,122 @@
                   densityField: new Float32Array([0, 1, 1, 0])
                 },
                 () => Number.isFinite(bilinearSample(state.densityField, 0.5, 0.5))
+              );
+            }
+          },
+          {
+            name: "resizeDensityField preserves normalized samples",
+            test() {
+              if (typeof resizeDensityField !== "function") {
+                return false;
+              }
+
+              const resized = resizeDensityField(new Float32Array([0, 1, 1, 0]), 2, 2, 3, 3);
+              return (
+                resized.length === 9 &&
+                resized[0] === 0 &&
+                resized[2] === 1 &&
+                resized[6] === 1 &&
+                resized[8] === 0 &&
+                Math.abs(resized[4] - 0.5) < 0.00001
+              );
+            }
+          },
+          {
+            name: "resizeCanvas resamples existing density instead of reseeding",
+            test() {
+              const previousWidthDescriptor = Object.getOwnPropertyDescriptor(window, "innerWidth");
+              const previousHeightDescriptor = Object.getOwnPropertyDescriptor(window, "innerHeight");
+              const fakeContext = {
+                clearRect() {},
+                fillRect() {},
+                setTransform() {},
+                imageSmoothingEnabled: true,
+                fillStyle: "",
+                globalAlpha: 1
+              };
+              const fakeCanvas = {
+                width: 0,
+                height: 0,
+                style: {}
+              };
+
+              try {
+                Object.defineProperty(window, "innerWidth", { configurable: true, value: 16 });
+                Object.defineProperty(window, "innerHeight", { configurable: true, value: 16 });
+
+                return withTemporaryState(
+                  {
+                    canvas: fakeCanvas,
+                    ctx: fakeContext,
+                    running: false,
+                    width: 8,
+                    height: 8,
+                    dpr: 1,
+                    dprCap: 1,
+                    gridSize: 8,
+                    fieldColumns: 2,
+                    fieldRows: 2,
+                    densityField: new Float32Array([0, 1, 1, 0]),
+                    nextDensityField: new Float32Array(4),
+                    flowFieldConfig: createStableFlowFieldConfig(),
+                    frameNodes: { vortices: [], emitters: [] },
+                    dotPositionsX: new Uint16Array(0),
+                    dotPositionsY: new Uint16Array(0),
+                    rowDriftX: new Float32Array(0),
+                    columnDriftY: new Float32Array(0)
+                  },
+                  () => {
+                    const resized = resizeCanvas();
+                    return (
+                      resized === true &&
+                      state.densityField.length === 9 &&
+                      Math.abs(state.densityField[4] - 0.5) < 0.00001 &&
+                      state.densityField.some((value) => value > 0.9) &&
+                      state.densityField.some((value) => value < 0.1)
+                    );
+                  }
+                );
+              } finally {
+                if (previousWidthDescriptor) {
+                  Object.defineProperty(window, "innerWidth", previousWidthDescriptor);
+                } else {
+                  delete window.innerWidth;
+                }
+                if (previousHeightDescriptor) {
+                  Object.defineProperty(window, "innerHeight", previousHeightDescriptor);
+                } else {
+                  delete window.innerHeight;
+                }
+              }
+            }
+          },
+          {
+            name: "seedAmbientDensityField starts with dark dots",
+            test() {
+              if (typeof seedAmbientDensityField !== "function") {
+                return false;
+              }
+
+              return withTemporaryState(
+                {
+                  fieldColumns: 10,
+                  fieldRows: 8,
+                  densityField: new Float32Array(0),
+                  nextDensityField: new Float32Array(0)
+                },
+                () => {
+                  seedAmbientDensityField();
+                  const values = Array.from(state.densityField);
+                  const maxDensity = Math.max(...values);
+                  const averageDensity = values.reduce((sum, value) => sum + value, 0) / values.length;
+                  return (
+                    state.densityField.length === 80 &&
+                    state.nextDensityField.length === 80 &&
+                    maxDensity <= 0.145 &&
+                    averageDensity <= 0.06
+                  );
+                }
               );
             }
           },
