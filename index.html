@@ -32,6 +32,8 @@
         --fallback-dot: #0d0d0f;
         --shadow: 0 28px 80px rgba(13, 13, 15, 0.08);
         --hover-shadow: 0 18px 42px rgba(13, 13, 15, 0.1);
+        --content-inline: clamp(1.5rem, 4vw, 3rem);
+        --content-max-width: 30rem;
       }
 
       :root[data-theme="dark"] {
@@ -105,47 +107,44 @@
       .theme-toggle {
         position: fixed;
         top: 1.5rem;
-        right: 1.5rem;
+        right: var(--content-inline);
         z-index: 3;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         min-height: 2.75rem;
-        border: 1px solid var(--line);
-        background: var(--panel);
+        border: 0;
+        background: transparent;
         color: var(--muted);
-        padding: 0.8rem 1rem;
-        border-radius: 999px;
+        padding: 0;
+        border-radius: 0;
         letter-spacing: 0.14em;
         text-transform: uppercase;
         font-family: inherit;
-        font-size: 0.74rem;
+        font-size: 0.88rem;
+        line-height: 1.35;
         font-weight: 100;
         cursor: pointer;
-        backdrop-filter: blur(18px);
-        transition:
-          transform 360ms cubic-bezier(0.16, 1, 0.3, 1),
-          border-color 360ms ease,
-          background-color 360ms ease,
-          box-shadow 360ms ease,
-          color 360ms ease;
+        box-shadow: none;
+        transition: color 240ms ease;
       }
 
       .page-header {
         position: fixed;
         top: 1.5rem;
-        left: 1.5rem;
+        left: var(--content-inline);
         z-index: 3;
         display: flex;
         align-items: center;
         min-height: 2.75rem;
-        max-width: calc(100vw - 3rem);
+        max-width: calc(100vw - var(--content-inline) - var(--content-inline) - 7rem);
       }
 
       .theme-toggle:hover,
       .theme-toggle:focus-visible {
-        transform: translateY(-2px);
-        border-color: var(--accent);
-        background: rgb(var(--fg-rgb) / 0.08);
-        box-shadow: var(--hover-shadow);
         color: var(--fg);
+        text-decoration: underline;
+        text-underline-offset: 0.24em;
         outline: none;
       }
 
@@ -155,40 +154,17 @@
         min-height: 100vh;
         display: grid;
         place-items: center;
-        padding: clamp(1.5rem, 4vw, 3rem);
+        padding: var(--content-inline);
       }
 
       .portrait {
         font-family: inherit;
-        position: relative;
-        isolation: isolate;
-        overflow: hidden;
-        width: min(100%, 36rem);
-        padding: clamp(3rem, 4vw, 3rem);
-        border: 1px solid var(--line);
-        border-radius: 12px;
+        width: min(100%, var(--content-max-width));
+        padding: 0;
+        border: 0;
+        border-radius: 0;
         background: transparent;
-        box-shadow: var(--shadow);
-      }
-
-      .portrait::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        pointer-events: none;
-        background: linear-gradient(
-          90deg,
-          rgb(var(--bg-rgb) / 0.00),
-          rgb(var(--bg-rgb) / 0.00)
-        );
-        -webkit-backdrop-filter: blur(2px) saturate(0%);
-        backdrop-filter: blur(2px) saturate(0%);
-      }
-
-      .portrait > * {
-        position: relative;
-        z-index: 1;
+        box-shadow: none;
       }
 
       .name {
@@ -199,141 +175,62 @@
         color: var(--muted);
         padding: 0;
         font-family: inherit;
-        font-size: clamp(1rem, 1.35vw, 1.16rem);
-        line-height: 1;
-        letter-spacing: 0.08em;
+        font-size: 0.88rem;
+        line-height: 1.35;
+        letter-spacing: 0.14em;
         font-weight: 100;
         max-width: 100%;
         overflow-wrap: anywhere;
       }
 
       .links {
-        --link-columns: 1;
-        --link-gap: 0.75rem;
-        display: grid;
-        grid-template-columns: repeat(
-          var(--link-columns),
-          minmax(0, calc((100% - (var(--link-columns) - 1) * var(--link-gap)) / var(--link-columns)))
-        );
-        gap: var(--link-gap);
-        width: min(100%, 48rem);
-        margin: 0 auto 0;
-        justify-items: center;
-        justify-content: center;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.25rem;
+        width: 100%;
+        margin: 0;
+        border: 0;
+        background: transparent;
       }
 
-      .link-chip {
-        position: relative;
-        isolation: isolate;
-        overflow: hidden;
-        display: grid;
-        grid-template-columns: 1rem minmax(0, 1fr) 1rem;
+      .link-row {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        min-height: 2.75rem;
-        width: min(100%, 30rem);
-        padding: 0.8rem 1rem;
-        border: 1px solid var(--line);
-        border-radius: 999px;
+        max-width: 100%;
+        padding: 0.12rem 0;
+        border: 0;
+        border-radius: 0;
         box-sizing: border-box;
-        color: var(--fg);
+        color: var(--muted);
         text-decoration: none;
         font-size: 0.96rem;
         letter-spacing: 0.04em;
-        background: rgba(255, 255, 255, 0.02);
-        box-shadow: 0 0 0 rgba(0, 0, 0, 0);
-        transition:
-          transform 380ms cubic-bezier(0.16, 1, 0.3, 1),
-          border-color 380ms ease,
-          background-color 380ms ease,
-          box-shadow 380ms ease;
+        background: transparent;
+        transition: color 240ms ease;
       }
 
-      .link-chip::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        border-radius: inherit;
-        background:
-          radial-gradient(circle at 20% 50%, rgb(var(--fg-rgb) / 0.12), transparent 38%),
-          linear-gradient(90deg, rgb(var(--fg-rgb) / 0.08), rgb(var(--fg-rgb) / 0.03));
-        opacity: 0;
-        transition: opacity 420ms ease;
-      }
-
-      .link-chip::after {
-        content: "";
-        width: 1rem;
-        height: 1rem;
-      }
-
-      .link-chip > *,
-      .link-chip::after {
-        position: relative;
-        z-index: 1;
-      }
-
-      .link-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 1rem;
-        width: 1rem;
-        height: 1rem;
+      .link-row:hover,
+      .link-row:focus-visible {
         color: var(--fg);
-        transform: translateX(0.25rem);
-        transition:
-          color 380ms ease,
-          transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .link-icon svg {
-        display: block;
-        width: 100%;
-        height: 100%;
-        fill: currentColor;
-      }
-
-      .link-chip:hover,
-      .link-chip:focus-visible {
-        transform: translateY(-3px);
-        border-color: var(--accent);
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: var(--hover-shadow);
+        text-decoration: underline;
+        text-underline-offset: 0.24em;
         outline: none;
       }
 
-      .link-chip:hover::before,
-      .link-chip:focus-visible::before {
-        opacity: 1;
-      }
-
-      .link-chip:hover .link-icon,
-      .link-chip:focus-visible .link-icon {
-        transform: translateX(0.32rem) scale(1.06);
-      }
-
       .link-label {
-        color: var(--muted);
-        justify-self: center;
-        text-align: center;
-        line-height: 1;
+        color: inherit;
+        text-align: left;
+        line-height: 1.35;
         letter-spacing: 0.14em;
         font-size: 0.88rem;
         font-weight: 100;
-        transition: color 380ms ease;
-      }
-
-      .link-chip:hover .link-label,
-      .link-chip:focus-visible .link-label {
-        color: var(--fg);
+        overflow-wrap: anywhere;
       }
 
       .footer-note {
         position: fixed;
-        right: 1.5rem;
+        right: var(--content-inline);
         bottom: 1.4rem;
         z-index: 1;
         display: block;
@@ -341,8 +238,10 @@
         background: transparent;
         padding: 0;
         color: var(--muted);
-        font-size: 0.76rem;
+        font-size: 0.88rem;
+        line-height: 1.35;
         letter-spacing: 0.14em;
+        text-align: right;
         box-shadow: none;
       }
 
@@ -365,15 +264,10 @@
       @media (max-width: 720px) {
         .page-header {
           top: 1rem;
-          left: 1rem;
-          right: 6.75rem;
-          max-width: none;
         }
 
         .theme-toggle {
           top: 1rem;
-          right: 1rem;
-          padding-inline: 0.85rem;
         }
 
         .name {
@@ -381,11 +275,14 @@
         }
 
         .portrait {
-          padding: 1.2rem;
+          padding: 0;
+        }
+
+        .link-row {
+          padding: 0.1rem 0;
         }
 
         .footer-note {
-          right: 1rem;
           bottom: 1rem;
         }
       }
@@ -1119,44 +1016,17 @@
           .replaceAll("'", "&#39;");
       }
 
-      const LINK_ICON_SVGS = Object.freeze({
-        github:
-          '<svg viewBox="0 0 16 16" role="img" aria-label="GitHub icon"><path d="M8 0C3.58 0 0 3.67 0 8.2c0 3.62 2.29 6.69 5.47 7.77.4.08.55-.18.55-.39 0-.19-.01-.83-.01-1.5-2.01.38-2.53-.51-2.69-.99-.09-.25-.47-.99-.8-1.19-.27-.15-.65-.54-.01-.55.61-.01 1.05.57 1.19.81.69 1.18 1.79.85 2.23.65.07-.52.27-.85.49-1.05-1.78-.21-3.64-.92-3.64-4.08 0-.9.31-1.64.82-2.22-.08-.2-.36-1.03.08-2.14 0 0 .67-.22 2.2.85A7.36 7.36 0 0 1 8 4.87c.65 0 1.31.09 1.92.27 1.53-1.07 2.2-.85 2.2-.85.44 1.11.16 1.94.08 2.14.51.58.82 1.31.82 2.22 0 3.17-1.87 3.87-3.65 4.08.28.25.53.74.53 1.5 0 1.08-.01 1.95-.01 2.22 0 .22.15.48.55.39A8.2 8.2 0 0 0 16 8.2C16 3.67 12.42 0 8 0Z"></path></svg>',
-        x:
-          '<svg viewBox="0 0 16 16" role="img" aria-label="X (Formally Twitter) icon"><path d="M9.52 6.78 15.46 0h-1.41L8.9 5.88 4.78 0H0l6.23 8.89L0 16h1.41l5.45-6.22L11.22 16H16L9.52 6.78Zm-1.95 2.23-.63-.88L1.9 1.1h2.18l4.06 5.68.63.88 5.28 7.39H11.87L7.57 9.01Z"></path></svg>',
-        general:
-          '<svg viewBox="0 0 16 16" role="img" aria-label="General link icon"><path d="M4.5 1.75A1.75 1.75 0 0 0 2.75 3.5v10.75l5.25-2.76 5.25 2.76V3.5A1.75 1.75 0 0 0 11.5 1.75Zm0 1.5h7c.14 0 .25.11.25.25v8.28L8 9.82l-3.75 1.96V3.5c0-.14.11-.25.25-.25Z"></path></svg>',
-        soundcloud:
-          '<svg viewBox="0 0 16 16" role="img" aria-label="SoundCloud icon"><path d="M6.2 5.3a4.27 4.27 0 0 1 4.15 3.1h.68A2.97 2.97 0 1 1 11.1 14H2.45A2.45 2.45 0 0 1 2 9.14V8.8a1.6 1.6 0 0 1 1.92-1.57A2.98 2.98 0 0 1 6.2 5.3ZM1.75 8.67h.87V14h-.87Zm1.3-.82h.87V14h-.87Zm1.3-.5h.87V14h-.87Zm1.3-.15h.87V14h-.87Z"></path></svg>'
-      });
-
-      const GENERAL_LINK_SERVICES = new Set(["hatena-blog", "note", "sizu-me", "zenn", "qiita"]);
-
-      function getLinkIconSvg(service) {
-        const iconKey = GENERAL_LINK_SERVICES.has(service) ? "general" : service;
-        const iconSvg = LINK_ICON_SVGS[iconKey];
-        if (!iconSvg) {
-          throw new Error("Unknown link service: " + service);
-        }
-
-        return iconSvg;
-      }
-
       function buildLinkMarkup(links) {
         return links
           .filter((link) => link.url.trim() !== "")
           .map((link) => {
             const label = escapeHtml(link.label);
             const url = escapeHtml(link.url);
-            const iconSvg = getLinkIconSvg(link.service);
 
             return [
-              '<a class="link-chip" href="',
+              '<a class="link-row" href="',
               url,
               '" target="_blank" rel="noreferrer noopener">',
-              '<span class="link-icon">',
-              iconSvg,
-              "</span>",
               '<span class="link-label">',
               label,
               "</span>",
@@ -1457,7 +1327,10 @@
               renderProfile();
 
               const linksMarkup = document.getElementById("profile-links").innerHTML;
+              const rowIndex = linksMarkup.indexOf('class="link-row"');
+              const chipIndex = linksMarkup.indexOf('class="link-chip"');
               const iconIndex = linksMarkup.indexOf('class="link-icon"');
+              const svgIndex = linksMarkup.indexOf("<svg");
               const labelIndex = linksMarkup.indexOf('class="link-label"');
               const profileName = document.getElementById("profile-name");
               const result =
@@ -1465,14 +1338,50 @@
                 profileName.parentElement?.classList.contains("page-header") === true &&
                 linksMarkup.includes("example.com/docs") &&
                 !linksMarkup.includes("Skip") &&
-                iconIndex !== -1 &&
+                rowIndex !== -1 &&
+                chipIndex === -1 &&
+                iconIndex === -1 &&
+                svgIndex === -1 &&
                 labelIndex !== -1 &&
-                iconIndex < labelIndex;
+                rowIndex < labelIndex;
 
               profile.name = previousName;
               profile.links = previousLinks;
               renderProfile();
               return result;
+            }
+          },
+          {
+            name: "link list renders as decoration-free text rows",
+            test() {
+              const portraitStyle = getComputedStyle(document.querySelector(".portrait"));
+              const linksStyle = getComputedStyle(document.getElementById("profile-links"));
+              const firstLink = document.querySelector(".link-row");
+              if (!firstLink) {
+                return false;
+              }
+
+              const firstLinkStyle = getComputedStyle(firstLink);
+              return (
+                portraitStyle.borderTopWidth === "0px" &&
+                portraitStyle.backgroundColor === "rgba(0, 0, 0, 0)" &&
+                portraitStyle.boxShadow === "none" &&
+                linksStyle.backgroundColor === "rgba(0, 0, 0, 0)" &&
+                firstLinkStyle.borderTopWidth === "0px" &&
+                firstLinkStyle.backgroundColor === "rgba(0, 0, 0, 0)" &&
+                getComputedStyle(firstLink, "::before").content === "none" &&
+                getComputedStyle(firstLink, "::after").content === "none" &&
+                document.querySelector(".link-chip") === null &&
+                document.querySelector(".link-icon") === null &&
+                document.querySelector(".link-row svg") === null
+              );
+            }
+          },
+          {
+            name: "link rows use generous vertical spacing",
+            test() {
+              const linksStyle = getComputedStyle(document.getElementById("profile-links"));
+              return parseFloat(linksStyle.rowGap) >= 20;
             }
           },
           {
@@ -1492,7 +1401,43 @@
             }
           },
           {
-            name: "profile title aligns with the theme toggle",
+            name: "header and footer keep edge placement with link text rhythm",
+            test() {
+              const headerRect = document.querySelector(".page-header").getBoundingClientRect();
+              const footerRect = document.querySelector(".footer-note").getBoundingClientRect();
+              const linkLabelStyle = getComputedStyle(document.querySelector(".link-label"));
+              const profileNameStyle = getComputedStyle(document.getElementById("profile-name"));
+              const footerStyle = getComputedStyle(document.querySelector(".footer-note"));
+              const edgeInset = parseFloat(getComputedStyle(document.querySelector(".shell")).paddingLeft);
+
+              return (
+                Math.abs(headerRect.left - edgeInset) <= 1 &&
+                Math.abs(window.innerWidth - footerRect.right - edgeInset) <= 1 &&
+                profileNameStyle.fontSize === linkLabelStyle.fontSize &&
+                profileNameStyle.letterSpacing === linkLabelStyle.letterSpacing &&
+                footerStyle.fontSize === linkLabelStyle.fontSize &&
+                footerStyle.letterSpacing === linkLabelStyle.letterSpacing &&
+                footerStyle.textAlign === "right"
+              );
+            }
+          },
+          {
+            name: "theme toggle uses the same minimal text treatment",
+            test() {
+              const themeToggleStyle = getComputedStyle(themeToggle);
+              const linkLabelStyle = getComputedStyle(document.querySelector(".link-label"));
+              return (
+                themeToggleStyle.borderTopWidth === "0px" &&
+                themeToggleStyle.backgroundColor === "rgba(0, 0, 0, 0)" &&
+                themeToggleStyle.boxShadow === "none" &&
+                themeToggleStyle.borderTopLeftRadius === "0px" &&
+                themeToggleStyle.fontSize === linkLabelStyle.fontSize &&
+                themeToggleStyle.letterSpacing === linkLabelStyle.letterSpacing
+              );
+            }
+          },
+          {
+            name: "profile title aligns with the theme toggle vertically",
             test() {
               const profileNameRect = document.getElementById("profile-name").getBoundingClientRect();
               const themeToggleRect = themeToggle.getBoundingClientRect();
@@ -1716,39 +1661,24 @@
             }
           },
           {
-            name: "buildLinkMarkup renders service svg before label",
+            name: "buildLinkMarkup renders text-only link rows",
             test() {
               const markup = buildLinkMarkup([
                 { service: "github", label: "One", url: "https://example.com" }
               ]);
+              const rowIndex = markup.indexOf('class="link-row"');
+              const chipIndex = markup.indexOf('class="link-chip"');
               const iconIndex = markup.indexOf('class="link-icon"');
+              const svgIndex = markup.indexOf("<svg");
               const labelIndex = markup.indexOf('class="link-label"');
               return (
-                markup.includes('aria-label="GitHub icon"') &&
-                iconIndex !== -1 &&
+                rowIndex !== -1 &&
+                chipIndex === -1 &&
+                iconIndex === -1 &&
+                svgIndex === -1 &&
                 labelIndex !== -1 &&
-                iconIndex < labelIndex
+                rowIndex < labelIndex
               );
-            }
-          },
-          {
-            name: "getLinkIconSvg uses general icon for non-primary services",
-            test() {
-              return (
-                getLinkIconSvg("note").includes('aria-label="General link icon"') &&
-                getLinkIconSvg("qiita") === getLinkIconSvg("note")
-              );
-            }
-          },
-          {
-            name: "getLinkIconSvg throws for unknown service",
-            test() {
-              try {
-                getLinkIconSvg("unknown");
-                return false;
-              } catch (error) {
-                return error instanceof Error && error.message.includes("Unknown link service");
-              }
             }
           },
           {
