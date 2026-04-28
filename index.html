@@ -457,6 +457,11 @@
       const FLOW_FIELD_FADE = 0.992;
       const CANVAS_TRAIL_ALPHA = 0.1;
       const VISUAL_GRID_SIZE = 8;
+      const INTERACTION_RIPPLE_MAX_COUNT = 8;
+      const INTERACTION_RIPPLE_DURATION = 900;
+      const INTERACTION_RIPPLE_RADIUS = 18;
+      const INTERACTION_RIPPLE_WIDTH = 3;
+      const INTERACTION_RIPPLE_STRENGTH = 0.24;
       const CANVAS_QUALITY_PROFILES = Object.freeze({
         high: Object.freeze({ name: "high", gridSize: VISUAL_GRID_SIZE, dprCap: 1.5, fps: 30 }),
         balanced: Object.freeze({ name: "balanced", gridSize: VISUAL_GRID_SIZE, dprCap: 1.25, fps: 24 }),
@@ -509,6 +514,7 @@
           vortices: [],
           emitters: []
         },
+        interactionRipples: [],
         rowDriftX: new Float32Array(0),
         columnDriftY: new Float32Array(0),
         dotPositionsX: new Uint16Array(0),
@@ -895,6 +901,73 @@
         return density;
       }
 
+      function pruneExpiredInteractionRipples(time) {
+        if (!Array.isArray(state.interactionRipples) || state.interactionRipples.length === 0) {
+          return [];
+        }
+
+        const activeRipples = state.interactionRipples.filter((ripple) => {
+          const age = time - ripple.startTime;
+          return Number.isFinite(age) && age >= 0 && age <= INTERACTION_RIPPLE_DURATION;
+        });
+
+        if (activeRipples.length !== state.interactionRipples.length) {
+          state.interactionRipples = activeRipples;
+        }
+
+        return state.interactionRipples;
+      }
+
+      function queueInteractionRipple(clientX, clientY, time = performance.now()) {
+        if (
+          state.fieldColumns <= 0 ||
+          state.fieldRows <= 0 ||
+          state.gridSize <= 0 ||
+          !Number.isFinite(clientX) ||
+          !Number.isFinite(clientY)
+        ) {
+          return false;
+        }
+
+        const ripple = {
+          x: clamp(clientX / state.gridSize, 0, state.fieldColumns - 1),
+          y: clamp(clientY / state.gridSize, 0, state.fieldRows - 1),
+          startTime: Number.isFinite(time) ? time : performance.now()
+        };
+
+        state.interactionRipples.push(ripple);
+        if (state.interactionRipples.length > INTERACTION_RIPPLE_MAX_COUNT) {
+          state.interactionRipples.splice(0, state.interactionRipples.length - INTERACTION_RIPPLE_MAX_COUNT);
+        }
+
+        return true;
+      }
+
+      function interactionDensityAt(x, y, time, ripples) {
+        if (!Array.isArray(ripples) || ripples.length === 0) {
+          return 0;
+        }
+
+        let density = 0;
+        for (const ripple of ripples) {
+          const age = time - ripple.startTime;
+          if (!Number.isFinite(age) || age < 0 || age > INTERACTION_RIPPLE_DURATION) {
+            continue;
+          }
+
+          const progress = age / INTERACTION_RIPPLE_DURATION;
+          const waveRadius = progress * INTERACTION_RIPPLE_RADIUS;
+          const dx = x - ripple.x;
+          const dy = y - ripple.y;
+          const distance = Math.hypot(dx, dy);
+          const crest = 1 - smoothstep(0, INTERACTION_RIPPLE_WIDTH, Math.abs(distance - waveRadius));
+          const fadeOut = 1 - smoothstep(0.72, 1, progress);
+          density = Math.max(density, crest * fadeOut * INTERACTION_RIPPLE_STRENGTH);
+        }
+
+        return density;
+      }
+
       function seedAmbientDensityField() {
         const size = state.fieldColumns * state.fieldRows;
         state.densityField = new Float32Array(size);
@@ -951,6 +1024,7 @@
         const nextField = state.nextDensityField;
         const vortices = frameNodes.vortices;
         const emitters = frameNodes.emitters;
+        const interactionRipples = pruneExpiredInteractionRipples(time);
         const maxX = columns - 1;
         const maxY = rows - 1;
 
@@ -1020,6 +1094,11 @@
               if (density > injected) {
                 injected = density;
               }
+            }
+
+            const interactionDensity = interactionDensityAt(x, y, time, interactionRipples);
+            if (interactionDensity > injected) {
+              injected = interactionDensity;
             }
 
             const blended = advected * 0.82 + neighborhood * 0.14 + injected;
@@ -1335,6 +1414,14 @@
         }
 
         startAnimation();
+      }
+
+      function handleDotInteraction(event) {
+        if (!event) {
+          return false;
+        }
+
+        return queueInteractionRipple(event.clientX, event.clientY);
       }
 
       function withTemporaryState(overrides, callback) {
@@ -1729,6 +1816,109 @@
             }
           },
           {
+            name: "queueInteractionRipple converts viewport taps to grid coordinates",
+            test() {
+              if (typeof queueInteractionRipple !== "function") {
+                return false;
+              }
+
+              return withTemporaryState(
+                {
+                  width: 80,
+                  height: 80,
+                  gridSize: 8,
+                  fieldColumns: 11,
+                  fieldRows: 11,
+                  interactionRipples: []
+                },
+                () => {
+                  const queued = queueInteractionRipple(40, 24, 1200);
+                  const ripple = state.interactionRipples[0];
+                  return (
+                    queued === true &&
+                    state.interactionRipples.length === 1 &&
+                    ripple.x === 5 &&
+                    ripple.y === 3 &&
+                    ripple.startTime === 1200
+                  );
+                }
+              );
+            }
+          },
+          {
+            name: "interactionDensityAt forms a temporary ripple crest",
+            test() {
+              if (
+                typeof interactionDensityAt !== "function" ||
+                typeof INTERACTION_RIPPLE_DURATION !== "number" ||
+                typeof INTERACTION_RIPPLE_RADIUS !== "number"
+              ) {
+                return false;
+              }
+
+              const ripple = { x: 5, y: 5, startTime: 1000 };
+              const crestTime = 1000 + INTERACTION_RIPPLE_DURATION * 0.25;
+              const crestX = 5 + INTERACTION_RIPPLE_RADIUS * 0.25;
+              const crestDensity = interactionDensityAt(crestX, 5, crestTime, [ripple]);
+              const expiredDensity = interactionDensityAt(crestX, 5, 1000 + INTERACTION_RIPPLE_DURATION + 1, [ripple]);
+              return crestDensity > 0.04 && expiredDensity === 0;
+            }
+          },
+          {
+            name: "stepFluidField injects density from active interaction ripples",
+            test() {
+              return withTemporaryState(
+                {
+                  fieldColumns: 12,
+                  fieldRows: 8,
+                  densityField: new Float32Array(96),
+                  nextDensityField: new Float32Array(96),
+                  rowDriftX: new Float32Array(8),
+                  columnDriftY: new Float32Array(12),
+                  interactionRipples: [{ x: 6, y: 4, startTime: 1000 }]
+                },
+                () => {
+                  stepFluidField(1000, 0.016, { vortices: [], emitters: [] });
+                  const values = Array.from(state.densityField);
+                  return (
+                    values.every((value) => Number.isFinite(value)) &&
+                    Math.max(...values) > 0
+                  );
+                }
+              );
+            }
+          },
+          {
+            name: "handleDotInteraction queues ripples without preventing default",
+            test() {
+              if (typeof handleDotInteraction !== "function") {
+                return false;
+              }
+
+              let defaultPrevented = false;
+              return withTemporaryState(
+                {
+                  width: 80,
+                  height: 80,
+                  gridSize: 8,
+                  fieldColumns: 11,
+                  fieldRows: 11,
+                  interactionRipples: []
+                },
+                () => {
+                  handleDotInteraction({
+                    clientX: 32,
+                    clientY: 40,
+                    preventDefault() {
+                      defaultPrevented = true;
+                    }
+                  });
+                  return defaultPrevented === false && state.interactionRipples.length === 1;
+                }
+              );
+            }
+          },
+          {
             name: "initializeGridGeometry caches dot coordinates",
             test() {
               return withTemporaryState(
@@ -1994,6 +2184,7 @@
         startAnimation();
 
         themeToggle.addEventListener("click", toggleTheme);
+        document.addEventListener("pointerdown", handleDotInteraction, { passive: true });
         window.addEventListener("resize", scheduleCanvasResize);
         document.addEventListener("visibilitychange", handleVisibilityChange);
         systemThemeQuery.addEventListener("change", () => {
