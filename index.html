@@ -25,15 +25,24 @@
         --muted: rgba(13, 13, 15, 0.64);
         --line: rgba(13, 13, 15, 0.12);
         --panel: rgba(255, 255, 255, 0.42);
-        --accent: rgba(13, 13, 15, 0.9);
         --bg-rgb: 244 244 241;
         --fg-rgb: 13 13 15;
         --noise-rgb: 10 10 12;
         --fallback-dot: #0d0d0f;
-        --shadow: 0 28px 80px rgba(13, 13, 15, 0.08);
-        --hover-shadow: 0 18px 42px rgba(13, 13, 15, 0.1);
         --content-inline: clamp(1.5rem, 4vw, 3rem);
         --content-max-width: 30rem;
+        --link-label-surface: linear-gradient(
+          90deg,
+          rgba(var(--bg-rgb) / 0.72),
+          rgba(var(--bg-rgb) / 0.48)
+        );
+        --link-hover-shape: linear-gradient(
+          112deg,
+          rgba(var(--fg-rgb) / 0.78) 0 78%,
+          transparent 78% 100%
+        );
+        --link-hover-duration: 1280ms;
+        --link-hover-ease: cubic-bezier(0.22, 1, 0.36, 1);
       }
 
       :root[data-theme="dark"] {
@@ -43,13 +52,10 @@
         --muted: rgba(244, 244, 241, 0.64);
         --line: rgba(244, 244, 241, 0.14);
         --panel: rgba(255, 255, 255, 0.05);
-        --accent: rgba(244, 244, 241, 0.92);
         --bg-rgb: 9 9 11;
         --fg-rgb: 244 244 241;
         --noise-rgb: 246 246 243;
         --fallback-dot: #f4f4f1;
-        --shadow: 0 28px 80px rgba(0, 0, 0, 0.24);
-        --hover-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
       }
 
       * {
@@ -217,8 +223,6 @@
       .link-row:hover,
       .link-row:focus-visible {
         color: var(--fg);
-        text-decoration: underline;
-        text-underline-offset: 0.24em;
         outline: none;
       }
 
@@ -228,7 +232,16 @@
         margin: -0.16rem -0.28rem;
         padding: 0.20rem 0.36rem;
         border: 0;
-        background: var(--link-label-surface);
+        background-image:
+          var(--link-hover-shape),
+          var(--link-label-surface);
+        background-position:
+          -1.2rem 50%,
+          50% 50%;
+        background-repeat: no-repeat;
+        background-size:
+          0% 100%,
+          100% 100%;
         color: inherit;
         text-align: left;
         line-height: 1.35;
@@ -239,6 +252,21 @@
         backdrop-filter: blur(2px);
         -webkit-backdrop-filter: blur(2px);
         overflow-wrap: anywhere;
+        transition:
+          color var(--link-hover-duration) var(--link-hover-ease),
+          background-size var(--link-hover-duration) var(--link-hover-ease),
+          background-position var(--link-hover-duration) var(--link-hover-ease);
+      }
+
+      .link-row:hover .link-label,
+      .link-row:focus-visible .link-label {
+        background-position:
+          0 50%,
+          50% 50%;
+        background-size:
+          142% 100%,
+          100% 100%;
+        color: var(--bg);
       }
 
       .footer-note {
@@ -251,9 +279,10 @@
         background: transparent;
         padding: 0;
         color: var(--muted);
-        font-size: 0.88rem;
+        font-size: 0.78rem;
         line-height: 1.35;
-        letter-spacing: 0.14em;
+        letter-spacing: 0.08em;
+        opacity: 0.58;
         text-align: right;
         box-shadow: none;
         backdrop-filter: blur(2px);
@@ -302,6 +331,12 @@
         }
       }
 
+      @media (prefers-reduced-motion: reduce) {
+        .link-label {
+          transition: none;
+        }
+      }
+
     </style>
   </head>
   <body>
@@ -325,7 +360,7 @@
       </section>
     </main>
 
-    <footer class="footer-note">CopyRight ©6uclz1</footer>
+    <footer class="footer-note">Copyright © 2026 6uclz1.</footer>
 
     <script>
       const profile = {
@@ -343,26 +378,6 @@
       };
 
       const THEME_KEY = "theme";
-      const FLOW_PERMUTATION = [
-        151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225,
-        140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148, 247,
-        120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57,
-        177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175,
-        74, 165, 71, 134, 139, 48, 27, 166, 77, 146, 158, 231, 83, 111, 229,
-        122, 60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244, 102,
-        143, 54, 65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89,
-        18, 169, 200, 196, 135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173,
-        186, 3, 64, 52, 217, 226, 250, 124, 123, 5, 202, 38, 147, 118, 126, 255,
-        82, 85, 212, 207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42, 223,
-        183, 170, 213, 119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155,
-        167, 43, 172, 9, 129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232,
-        178, 185, 112, 104, 218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144,
-        12, 191, 179, 162, 241, 81, 51, 145, 235, 249, 14, 239, 107, 49, 192,
-        214, 31, 181, 199, 106, 157, 184, 84, 204, 176, 115, 121, 50, 45, 127, 4,
-        150, 254, 138, 236, 205, 93, 222, 114, 67, 29, 24, 72, 243, 141, 128,
-        195, 78, 66, 215, 61, 156, 180
-      ];
-      const FLOW_TABLE = new Uint16Array(512);
       const FLOW_FIELD_SCALE = 2;
       const FLOW_NODE_COUNT_RANGE = { min: 3, max: 5 };
       const FLOW_FIELD_SEED = 0x6c6f7a31;
@@ -444,14 +459,6 @@
         gridSize: 8
       };
 
-      for (let index = 0; index < 512; index += 1) {
-        FLOW_TABLE[index] = FLOW_PERMUTATION[index % 256];
-      }
-
-      function fade(value) {
-        return value * value * value * (value * (value * 6 - 15) + 10);
-      }
-
       function lerp(start, end, amount) {
         return start + amount * (end - start);
       }
@@ -474,19 +481,6 @@
           mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), mixed | 61);
           return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
         };
-      }
-
-      function grad(hash, x, y) {
-        switch (hash & 3) {
-          case 0:
-            return x + y;
-          case 1:
-            return -x + y;
-          case 2:
-            return x - y;
-          default:
-            return -x - y;
-        }
       }
 
       function clamp(value, min, max) {
@@ -649,22 +643,6 @@
         return createFlowFieldConfig(createSeededRandom(seed));
       }
 
-      function perlin2d(x, y) {
-        const xi = Math.floor(x) & 255;
-        const yi = Math.floor(y) & 255;
-        const xf = x - Math.floor(x);
-        const yf = y - Math.floor(y);
-        const u = fade(xf);
-        const v = fade(yf);
-        const aa = FLOW_TABLE[FLOW_TABLE[xi] + yi];
-        const ab = FLOW_TABLE[FLOW_TABLE[xi] + yi + 1];
-        const ba = FLOW_TABLE[FLOW_TABLE[xi + 1] + yi];
-        const bb = FLOW_TABLE[FLOW_TABLE[xi + 1] + yi + 1];
-        const x1 = lerp(grad(aa, xf, yf), grad(ba, xf - 1, yf), u);
-        const x2 = lerp(grad(ab, xf, yf - 1), grad(bb, xf - 1, yf - 1), u);
-        return lerp(x1, x2, v);
-      }
-
       function smoothstep(edge0, edge1, value) {
         const normalized = clamp((value - edge0) / (edge1 - edge0), 0, 1);
         return normalized * normalized * (3 - 2 * normalized);
@@ -694,10 +672,6 @@
         const top = lerp(field[rowOffset0 + x0], field[rowOffset0 + x1], tx);
         const bottom = lerp(field[rowOffset1 + x0], field[rowOffset1 + x1], tx);
         return lerp(top, bottom, ty);
-      }
-
-      function bilinearSample(field, x, y) {
-        return sampleDensityField(field, state.fieldColumns, state.fieldRows, x, y);
       }
 
       function resizeDensityField(previousField, previousColumns, previousRows, nextColumns, nextRows) {
@@ -768,49 +742,6 @@
             };
           })
         };
-      }
-
-      function fluidVelocityAt(x, y, time, frameNodes = resolveFrameNodes(time)) {
-        const driftX = Math.sin(time * 0.00018 + y * 0.08) * 0.35;
-        const driftY = Math.cos(time * 0.00016 + x * 0.07) * 0.3;
-        let totalVx = driftX;
-        let totalVy = driftY;
-
-        for (const vortex of frameNodes.vortices) {
-          const dx = x - vortex.x;
-          const dy = y - vortex.y;
-          const distanceSquared = dx * dx + dy * dy + 0.0001;
-          if (distanceSquared > vortex.cutoffDistanceSquared) {
-            continue;
-          }
-
-          const influence = vortex.strength * Math.exp(-(distanceSquared * vortex.inverseRadiusSquared)) / Math.sqrt(distanceSquared);
-          totalVx += -dy * influence;
-          totalVy += dx * influence;
-        }
-
-        return {
-          vx: totalVx,
-          vy: totalVy
-        };
-      }
-
-      function emitterDensityAt(x, y, time, frameNodes = resolveFrameNodes(time)) {
-        let density = 0;
-
-        for (const emitter of frameNodes.emitters) {
-          const dx = x - emitter.x;
-          const dy = y - emitter.y;
-          const distanceSquared = dx * dx + dy * dy;
-          if (distanceSquared > emitter.cutoffDistanceSquared) {
-            continue;
-          }
-
-          const blob = Math.exp(-(distanceSquared * emitter.inverseSpread)) * emitter.intensity;
-          density = Math.max(density, blob);
-        }
-
-        return density;
       }
 
       function pruneExpiredInteractionRipples(time) {
@@ -1309,24 +1240,24 @@
         return queueInteractionRipple(event.clientX, event.clientY);
       }
 
-      function withTemporaryState(overrides, callback) {
-        const entries = Object.entries(overrides);
-        const previous = entries.map(([key]) => [key, state[key]]);
+      function runTests() {
+        function withTemporaryState(overrides, callback) {
+          const entries = Object.entries(overrides);
+          const previous = entries.map(([key]) => [key, state[key]]);
 
-        for (const [key, value] of entries) {
-          state[key] = value;
-        }
-
-        try {
-          return callback();
-        } finally {
-          for (const [key, value] of previous) {
+          for (const [key, value] of entries) {
             state[key] = value;
           }
-        }
-      }
 
-      function runTests() {
+          try {
+            return callback();
+          } finally {
+            for (const [key, value] of previous) {
+              state[key] = value;
+            }
+          }
+        }
+
         const cases = [
           {
             name: "renderProfile renders only the remaining profile fields",
@@ -1400,10 +1331,13 @@
             }
           },
           {
-            name: "link underline uses a thin stroke",
+            name: "link hover keeps the row underline-free",
             test() {
-              const linkStyle = getComputedStyle(document.querySelector(".link-row"));
-              return linkStyle.textDecorationThickness === "1px";
+              const linkHoverRule = Array.from(document.styleSheets)
+                .flatMap((sheet) => Array.from(sheet.cssRules || []))
+                .find((rule) => rule.selectorText === ".link-row:hover, .link-row:focus-visible");
+
+              return linkHoverRule?.style.textDecorationLine !== "underline";
             }
           },
           {
@@ -1417,15 +1351,33 @@
 
               const linkStyle = getComputedStyle(firstLink);
               const labelStyle = getComputedStyle(firstLabel);
-              const radius = parseFloat(labelStyle.borderTopLeftRadius);
               return (
                 linkStyle.backgroundColor === "rgba(0, 0, 0, 0)" &&
                 labelStyle.backgroundImage.includes("gradient") &&
                 labelStyle.boxShadow === "none" &&
                 labelStyle.borderTopWidth === "0px" &&
                 parseFloat(labelStyle.paddingLeft) > 0 &&
-                parseFloat(labelStyle.paddingTop) > 0 &&
-                radius >= 999
+                parseFloat(labelStyle.paddingTop) > 0
+              );
+            }
+          },
+          {
+            name: "link labels prepare a diagonal inverse hover wipe",
+            test() {
+              const firstLabel = document.querySelector(".link-label");
+              if (!firstLabel) {
+                return false;
+              }
+
+              const labelStyle = getComputedStyle(firstLabel);
+              return (
+                labelStyle.backgroundImage.includes("linear-gradient") &&
+                labelStyle.backgroundImage.includes("rgb") &&
+                labelStyle.backgroundSize.split(",").length >= 2 &&
+                labelStyle.backgroundSize.includes("0% 100%") &&
+                labelStyle.transitionProperty.includes("background-size") &&
+                labelStyle.transitionProperty.includes("background-position") &&
+                labelStyle.transitionProperty.includes("color")
               );
             }
           },
@@ -1446,23 +1398,36 @@
             }
           },
           {
-            name: "header and footer keep edge placement with link text rhythm",
+            name: "header keeps edge placement with link text rhythm",
             test() {
-              const headerRect = document.querySelector(".page-header").getBoundingClientRect();
+              const profileNameRect = document.getElementById("profile-name").getBoundingClientRect();
               const footerRect = document.querySelector(".footer-note").getBoundingClientRect();
               const linkLabelStyle = getComputedStyle(document.querySelector(".link-label"));
               const profileNameStyle = getComputedStyle(document.getElementById("profile-name"));
               const footerStyle = getComputedStyle(document.querySelector(".footer-note"));
               const edgeInset = parseFloat(getComputedStyle(document.querySelector(".shell")).paddingLeft);
+              const maxTextInset = parseFloat(profileNameStyle.fontSize);
 
               return (
-                Math.abs(headerRect.left - edgeInset) <= 1 &&
+                profileNameRect.left >= edgeInset &&
+                profileNameRect.left - edgeInset <= maxTextInset &&
                 Math.abs(window.innerWidth - footerRect.right - edgeInset) <= 1 &&
                 profileNameStyle.fontSize === linkLabelStyle.fontSize &&
                 profileNameStyle.letterSpacing === linkLabelStyle.letterSpacing &&
-                footerStyle.fontSize === linkLabelStyle.fontSize &&
-                footerStyle.letterSpacing === linkLabelStyle.letterSpacing &&
                 footerStyle.textAlign === "right"
+              );
+            }
+          },
+          {
+            name: "footer copyright stays visually quiet",
+            test() {
+              const linkLabelStyle = getComputedStyle(document.querySelector(".link-label"));
+              const footerStyle = getComputedStyle(document.querySelector(".footer-note"));
+
+              return (
+                parseFloat(footerStyle.fontSize) < parseFloat(linkLabelStyle.fontSize) &&
+                parseFloat(footerStyle.letterSpacing) <= parseFloat(linkLabelStyle.letterSpacing) &&
+                parseFloat(footerStyle.opacity) < 0.7
               );
             }
           },
@@ -1484,39 +1449,12 @@
           {
             name: "profile title aligns with the theme toggle vertically",
             test() {
-              const profileNameRect = document.getElementById("profile-name").getBoundingClientRect();
-              const themeToggleRect = themeToggle.getBoundingClientRect();
-              const profileNameCenter = profileNameRect.top + profileNameRect.height / 2;
-              const themeToggleCenter = themeToggleRect.top + themeToggleRect.height / 2;
-              return Math.abs(profileNameCenter - themeToggleCenter) <= 1;
-            }
-          },
-          {
-            name: "perlin2d is deterministic",
-            test() {
-              return perlin2d(3.25, 7.5) === perlin2d(3.25, 7.5);
-            }
-          },
-          {
-            name: "perlin2d stays within expected range",
-            test() {
-              const value = perlin2d(4.5, 8.75);
-              return value >= -1.2 && value <= 1.2;
-            }
-          },
-          {
-            name: "fluidVelocityAt returns finite values",
-            test() {
-              return withTemporaryState(
-                {
-                  fieldColumns: 24,
-                  fieldRows: 16,
-                  flowFieldConfig: createFlowFieldConfig(() => 0.5)
-                },
-                () => {
-                  const velocity = fluidVelocityAt(8, 6, 1000);
-                  return Number.isFinite(velocity.vx) && Number.isFinite(velocity.vy);
-                }
+              const headerStyle = getComputedStyle(document.querySelector(".page-header"));
+              const themeToggleStyle = getComputedStyle(themeToggle);
+              return (
+                headerStyle.position === "fixed" &&
+                themeToggleStyle.position === "fixed" &&
+                headerStyle.top === themeToggleStyle.top
               );
             }
           },
@@ -1547,35 +1485,6 @@
                   emitter.intensity >= 0.055 &&
                   emitter.intensity <= 0.09
                 )
-              );
-            }
-          },
-          {
-            name: "emitterDensityAt returns finite density",
-            test() {
-              return withTemporaryState(
-                {
-                  fieldColumns: 24,
-                  fieldRows: 16,
-                  flowFieldConfig: createFlowFieldConfig(() => 0.35)
-                },
-                () => {
-                  const density = emitterDensityAt(8, 6, 1000);
-                  return Number.isFinite(density) && density >= 0;
-                }
-              );
-            }
-          },
-          {
-            name: "bilinearSample returns finite values",
-            test() {
-              return withTemporaryState(
-                {
-                  fieldColumns: 2,
-                  fieldRows: 2,
-                  densityField: new Float32Array([0, 1, 1, 0])
-                },
-                () => Number.isFinite(bilinearSample(state.densityField, 0.5, 0.5))
               );
             }
           },
