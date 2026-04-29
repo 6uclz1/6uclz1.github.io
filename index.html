@@ -118,11 +118,11 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 2.75rem;
+        margin: -0.16rem -0.28rem;
         border: 0;
         background: transparent;
         color: var(--muted);
-        padding: 0;
+        padding: 0.42rem 0.52rem;
         border-radius: 0;
         letter-spacing: 0.14em;
         text-transform: uppercase;
@@ -271,13 +271,16 @@
 
       .footer-note {
         position: fixed;
-        right: var(--content-inline);
+        right: calc(var(--content-inline) + 0.28rem);
         bottom: 1.4rem;
         z-index: 1;
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        margin: -0.16rem -0.28rem;
         border: 0;
         background: transparent;
-        padding: 0;
+        padding: 0.42rem 0.52rem;
         color: var(--muted);
         font-size: 0.78rem;
         line-height: 1.35;
@@ -312,6 +315,7 @@
 
         .theme-toggle {
           top: 1rem;
+          line-height: 1.15;
         }
 
         .name {
@@ -1382,18 +1386,26 @@
             }
           },
           {
-            name: "header and footer render text only without boxes",
+            name: "header and footer share the same background structure",
             test() {
+              const headerStyle = getComputedStyle(document.querySelector(".page-header"));
               const profileNameStyle = getComputedStyle(document.getElementById("profile-name"));
               const footerStyle = getComputedStyle(document.querySelector(".footer-note"));
               return (
+                headerStyle.backgroundColor === "rgba(0, 0, 0, 0)" &&
+                headerStyle.borderTopWidth === "0px" &&
+                headerStyle.boxShadow === "none" &&
                 profileNameStyle.borderTopWidth === "0px" &&
                 profileNameStyle.backgroundColor === "rgba(0, 0, 0, 0)" &&
                 profileNameStyle.paddingTop === "0px" &&
                 footerStyle.borderTopWidth === "0px" &&
                 footerStyle.backgroundColor === "rgba(0, 0, 0, 0)" &&
-                footerStyle.paddingTop === "0px" &&
-                footerStyle.boxShadow === "none"
+                footerStyle.paddingTop === headerStyle.paddingTop &&
+                footerStyle.paddingRight === headerStyle.paddingRight &&
+                footerStyle.paddingBottom === headerStyle.paddingBottom &&
+                footerStyle.paddingLeft === headerStyle.paddingLeft &&
+                footerStyle.boxShadow === "none" &&
+                footerStyle.backdropFilter === headerStyle.backdropFilter
               );
             }
           },
@@ -1447,14 +1459,22 @@
             }
           },
           {
-            name: "profile title aligns with the theme toggle vertically",
+            name: "theme toggle matches the header height and vertical placement",
             test() {
-              const headerStyle = getComputedStyle(document.querySelector(".page-header"));
+              const header = document.querySelector(".page-header");
+              const headerStyle = getComputedStyle(header);
               const themeToggleStyle = getComputedStyle(themeToggle);
+              const headerRect = header.getBoundingClientRect();
+              const themeToggleRect = themeToggle.getBoundingClientRect();
               return (
                 headerStyle.position === "fixed" &&
                 themeToggleStyle.position === "fixed" &&
-                headerStyle.top === themeToggleStyle.top
+                headerStyle.top === themeToggleStyle.top &&
+                Math.abs(headerRect.height - themeToggleRect.height) <= 1 &&
+                Math.abs(
+                  headerRect.top + headerRect.height / 2 -
+                    (themeToggleRect.top + themeToggleRect.height / 2)
+                ) <= 1
               );
             }
           },
