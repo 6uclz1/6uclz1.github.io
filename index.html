@@ -136,8 +136,12 @@
         z-index: 3;
         display: flex;
         align-items: center;
-        min-height: 2.75rem;
         max-width: calc(100vw - var(--content-inline) - var(--content-inline) - 7rem);
+        margin: -0.16rem -0.28rem;
+        padding: 0.42rem 0.52rem;
+        box-shadow: none;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
       }
 
       .theme-toggle:hover,
@@ -219,12 +223,21 @@
       }
 
       .link-label {
+        display: inline-block;
+        max-width: calc(100% + 0.56rem);
+        margin: -0.16rem -0.28rem;
+        padding: 0.20rem 0.36rem;
+        border: 0;
+        background: var(--link-label-surface);
         color: inherit;
         text-align: left;
         line-height: 1.35;
         letter-spacing: 0.14em;
         font-size: 0.88rem;
         font-weight: 100;
+        box-shadow: none;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
         overflow-wrap: anywhere;
       }
 
@@ -243,6 +256,8 @@
         letter-spacing: 0.14em;
         text-align: right;
         box-shadow: none;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
       }
 
       .test-banner {
@@ -1382,6 +1397,36 @@
             test() {
               const linksStyle = getComputedStyle(document.getElementById("profile-links"));
               return parseFloat(linksStyle.rowGap) >= 20;
+            }
+          },
+          {
+            name: "link underline uses a thin stroke",
+            test() {
+              const linkStyle = getComputedStyle(document.querySelector(".link-row"));
+              return linkStyle.textDecorationThickness === "1px";
+            }
+          },
+          {
+            name: "link labels use a subtle readable surface",
+            test() {
+              const firstLink = document.querySelector(".link-row");
+              const firstLabel = document.querySelector(".link-label");
+              if (!firstLink || !firstLabel) {
+                return false;
+              }
+
+              const linkStyle = getComputedStyle(firstLink);
+              const labelStyle = getComputedStyle(firstLabel);
+              const radius = parseFloat(labelStyle.borderTopLeftRadius);
+              return (
+                linkStyle.backgroundColor === "rgba(0, 0, 0, 0)" &&
+                labelStyle.backgroundImage.includes("gradient") &&
+                labelStyle.boxShadow === "none" &&
+                labelStyle.borderTopWidth === "0px" &&
+                parseFloat(labelStyle.paddingLeft) > 0 &&
+                parseFloat(labelStyle.paddingTop) > 0 &&
+                radius >= 999
+              );
             }
           },
           {
